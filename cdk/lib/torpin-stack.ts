@@ -49,7 +49,7 @@ export class TorpinStack extends Stack {
     const customDomain = new DomainName(this, 'CustomDomain', {
       domainName: 'isbriantorp.in',  // Replace with your custom domain
       certificate: certificate,
-      endpointType: apigateway.EndpointType.REGIONAL,
+      endpointType: EndpointType.REGIONAL,
     });
 
     // Map custom domain to the API Gateway stage
