@@ -1,35 +1,58 @@
-import * as cdk from 'aws-cdk-lib';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { DomainName, EndpointType, LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
+import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { ApiGatewayDomain } from 'aws-cdk-lib/aws-route53-targets';
 
-export class TorpinStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
-  super(scope, id, props);
+export class TorpinStack extends Stack {
+  
+  constructor(scope: Construct, id: string, props?: StackProps) {
+    super(scope, id, props);
 
-  const myLambda = new lambda.Function(this, 'TorpinApi', {
-    runtime: lambda.Runtime.NODEJS_20_X,
-    code: lambda.Code.fromInline(`
-    exports.handler = async function(event) {
-      return {
-      statusCode: 200,
-      body: JSON.stringify({ isBrianTorpin: false })
+    // Create Lambda function
+    const myLambda = new Function(this, 'TorpinApi', {
+      runtime: Runtime.NODEJS_20_X,
+      code: Code.fromInline(`
+      exports.handler = async function(event) {
+        return {
+          statusCode: 200,
+          body: JSON.stringify({ isBrianTorpin: false })
+        };
       };
-    };
-    `),
-    handler: 'index.handler',
-  });
+      `),
+      handler: 'index.handler',
+    });
 
-  const api = new apigateway.RestApi(this, 'ToprinApiGateway', {
-    restApiName: 'Is Brian Torpin Status Service',
-    description: 'This service checks if Brian is playing World of Warships.',
-  });
+    // Create API Gateway
+    const api = new RestApi(this, 'ToprinApiGateway', {
+      restApiName: 'Is Brian Torpin Status Service',
+      description: 'This service checks if Brian is playing World of Warships.',
+    });
 
-  const v1 = api.root.addResource('v1');
-  const apiResource = v1.addResource('api');
+    // Add resources to the API
+    const v1 = api.root.addResource('v1');
+    const apiResource = v1.addResource('api');
 
-  // Integrating Lambda with API Gateway
-  const lambdaIntegration = new apigateway.LambdaIntegration(myLambda);
-  apiResource.addMethod('GET', lambdaIntegration);
+    // Integrating Lambda with API Gateway
+    const lambdaIntegration = new LambdaIntegration(myLambda);
+    apiResource.addMethod('GET', lambdaIntegration);
+
+    // Request or Import SSL Certificate for your custom domain
+    const certificate = new Certificate(this, 'Certificate', {
+      domainName: 'isbriantorp.in',  // Replace with your custom domain
+      validation: CertificateValidation.fromDns(),
+    });
+
+    // Create a custom domain for API Gateway
+    const customDomain = new DomainName(this, 'CustomDomain', {
+      domainName: 'isbriantorp.in',  // Replace with your custom domain
+      certificate: certificate,
+      endpointType: EndpointType.EDGE,  // Or use .REGIONAL depending on your needs
+    });
+
+    // Map custom domain to the API Gateway stage
+    customDomain.addBasePathMapping(api, { basePath: 'v1' });
   }
 }
