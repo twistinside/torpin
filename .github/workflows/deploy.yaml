@@ -37,9 +37,13 @@ jobs:
 
       # Step 5: Bootstrap the CDK environment (if needed)
       - name: Bootstrap CDK
-        run: npx cdk bootstrap
+        run: |
+          cd cdk
+          npx cdk bootstrap
 
       # Step 6: Deploy the CDK stack
       - name: Deploy CDK stack
-        run: npx cdk deploy --require-approval never
+        run: |
+          cd cdk
+          npx cdk deploy --require-approval never
         
