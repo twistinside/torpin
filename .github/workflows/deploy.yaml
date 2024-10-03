@@ -22,7 +22,9 @@ jobs:
 
       # Step 3: Install project dependencies (npm install)
       - name: Install dependencies
-        run: npm install
+        run: |
+          cd cdk
+          npm install
 
       # Step 4: Configure AWS credentials for deployment
       - name: Configure AWS credentials
