@@ -23,6 +23,7 @@ jobs:
       # Step 3: Install project dependencies (npm install)
       - name: Install dependencies
         run: |
+          npm install -g aws-cdk
           cd cdk
           npm install
 
