@@ -12,22 +12,24 @@ jobs:
     steps:
       # Step 1: Check out the repository code
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # Step 2: Set up Node.js (needed for CDK)
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'  # Use a specific version of Node.js
+          node-version: latest  # Use a specific version of Node.js
 
-      # Step 3: Install project dependencies (npm install)
+      # Step 3: Install CDK globally
+      - name: Install CDK
+        run: npm install -g aws-cdk
+
+      # Step 4: Install project dependencies (npm install)
       - name: Install dependencies
-        run: |
-          npm install -g aws-cdk
-          cd cdk
-          npm install
+        working-directory: ./cdk
+        run: npm install
 
-      # Step 4: Configure AWS credentials for deployment
+      # Step 5: Configure AWS credentials for deployment
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -35,15 +37,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-1  # Replace with your AWS region
 
-      # Step 5: Bootstrap the CDK environment (if needed)
+      # Step 6: Bootstrap the CDK environment (if needed)
       - name: Bootstrap CDK
-        run: |
-          cd cdk
-          npx cdk bootstrap
+        working-directory: ./cdk
+        run: npx cdk bootstrap
 
-      # Step 6: Deploy the CDK stack
+      # Step 7: Deploy the CDK stack
       - name: Deploy CDK stack
-        run: |
-          cd cdk
-          npx cdk deploy --require-approval never
+        working-directory: ./cdk
+        run: npx cdk deploy --require-approval never
         
