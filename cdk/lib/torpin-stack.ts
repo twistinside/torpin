@@ -30,7 +30,7 @@ export class TorpinStack extends Stack {
       restApiName: 'Is Brian Torpin Status Service',
       description: 'This service checks if Brian is playing World of Warships.',
       endpointConfiguration: {
-        types: [apigateway.EndpointType.REGIONAL] // Force Regional API
+        types: [EndpointType.REGIONAL] // Force Regional API
       }
     });
 
