@@ -29,11 +29,13 @@ export class TorpinStack extends Stack {
     const api = new RestApi(this, 'ToprinApiGateway', {
       restApiName: 'Is Brian Torpin Status Service',
       description: 'This service checks if Brian is playing World of Warships.',
+      endpointConfiguration: {
+        types: [apigateway.EndpointType.REGIONAL] // Force Regional API
+      }
     });
 
     // Add resources to the API
-    const v1 = api.root.addResource('v1');
-    const apiResource = v1.addResource('api');
+    const apiResource = api.root.addResource('v1');
 
     // Integrating Lambda with API Gateway
     const lambdaIntegration = new LambdaIntegration(myLambda);
