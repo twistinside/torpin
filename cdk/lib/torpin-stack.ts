@@ -24,6 +24,11 @@ export class TorpinStack extends Stack {
       `),
       handler: 'index.handler',
     });
+    
+    // Create a new Hosted Zone for the domain
+    const hostedZone = new HostedZone(this, 'HostedZone', {
+      zoneName: 'isbriantorp.in',  // Replace with your domain name
+    });
 
     // Create API Gateway
     const api = new RestApi(this, 'ToprinApiGateway', {
@@ -41,20 +46,27 @@ export class TorpinStack extends Stack {
     const lambdaIntegration = new LambdaIntegration(myLambda);
     apiResource.addMethod('GET', lambdaIntegration);
 
-    // Request or Import SSL Certificate for your custom domain
+   // Request or Import SSL Certificate for your custom domain
     const certificate = new Certificate(this, 'Certificate', {
-      domainName: 'isbriantorp.in',  // Replace with your custom domain
-      validation: CertificateValidation.fromDns(),
+      domainName: 'api.isbriantorp.in',  // Replace with your subdomain
+      validation: CertificateValidation.fromDns(hostedZone),  // DNS validation with the hosted zone
     });
 
     // Create a custom domain for API Gateway
     const customDomain = new DomainName(this, 'CustomDomain', {
-      domainName: 'isbriantorp.in',  // Replace with your custom domain
+      domainName: 'api.isbriantorp.in', 
       certificate: certificate,
-      endpointType: EndpointType.REGIONAL,
+      endpointType: EndpointType.REGIONAL,  // Ensure it's Regional
     });
-
+    
     // Map custom domain to the API Gateway stage
     customDomain.addBasePathMapping(api, { basePath: 'v1' });
+    
+    // Create an A Record in Route 53 for the custom domain
+    new ARecord(this, 'ApiARecord', {
+      zone: hostedZone,
+      target: RecordTarget.fromAlias(new ApiGatewayDomain(customDomain)),
+      recordName: 'api',
+    });
   }
 }
