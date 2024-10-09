@@ -21,7 +21,7 @@ export class TorpinStack extends Stack {
       exports.handler = async function(event) {
         return {
           statusCode: 200,
-          body: JSON.stringify({ isBrianTorpin: false })
+          body: JSON.stringify({ isBrianTorpin: true })
         };
       };
       `),
