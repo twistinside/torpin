@@ -99,6 +99,9 @@ export class TorpinStack extends Stack {
       endpointType: EndpointType.REGIONAL,  // Ensure it's Regional
     });
     
+    // Map custom domain to the API Gateway stage
+    customDomain.addBasePathMapping(api, { basePath: 'prod' });
+    
     // Create an A Record in Route 53 for the custom domain
     new ARecord(this, 'ApiARecord', {
       zone: hostedZone,
