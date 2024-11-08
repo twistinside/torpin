@@ -4,11 +4,24 @@
 import PackageDescription
 
 let package = Package(
-    name: "lambda",
+    name: "TorpinServiceLambda",
+    platforms: [
+        .macOS(.v10_15)
+      ],
+    products: [
+        .executable(name: "TorpinServiceLambda", targets: ["TorpinServiceLambda"])
+    ],
+    dependencies: [
+        .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", from: "0.5.2"),
+        .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.9.0")
+    ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .executableTarget(
-            name: "lambda"),
+            name: "TorpinServiceLambda",
+            dependencies: [
+                .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime"),
+                .product(name: "AsyncHTTPClient", package: "async-http-client")
+            ]
+        )
     ]
 )
