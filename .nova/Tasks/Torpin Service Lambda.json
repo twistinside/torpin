@@ -1,0 +1,16 @@
+{
+  "actions" : {
+    "build" : {
+      "enabled" : true,
+      "script" : "cd lambda\nswift build"
+    },
+    "clean" : {
+      "enabled" : true,
+      "script" : "cd lambda\nswift package clean"
+    },
+    "run" : {
+      "enabled" : true,
+      "script" : "export LOCAL_LAMBDA_SERVER_ENABLED=true\ncd lambda\nswift run"
+    }
+  }
+}

@@ -5,9 +5,10 @@ import Foundation
 class SteamClient {
 	
 	let decoder = JSONDecoder()
+	var steamKey = "";
 	
-	func networkCall() async throws -> Bool {
-		var request = HTTPClientRequest(url: "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=D655A1F05B7643475CFB35BCFAEAB374&steamids=76561197978678172")
+	func isBrianTorpin() async throws -> Bool {
+		var request = HTTPClientRequest(url: "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=\(steamKey)")
 		request.method = .GET
 		request.headers.add(name: "Accept-Encoding", value: "identity")
 		
@@ -46,12 +47,10 @@ struct SteamResponse: Codable {
 	let response: PlayersResponse
 }
 
-// Response containing players
 struct PlayersResponse: Codable {
 	let players: [Player]
 }
 
-// Player object
 struct Player: Codable {
 	let avatar: String
 	let avatarfull: String
