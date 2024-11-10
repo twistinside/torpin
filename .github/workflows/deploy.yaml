@@ -58,22 +58,44 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      # Step 3: Set up Node.js and install dependencies
+      # Step 3: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: latest
 
+      # Step 4: Install dependencies
       - name: Install CDK dependencies
         working-directory: ./cdk
         run: npm install
 
-      # Step 4: Save updated npm cache
+      # Step 5: Save updated npm cache
       - name: Save CDK npm cache
         uses: actions/cache@v4
         with:
           path: ${{ steps.npm-cache-dir.outputs.dir }}
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          
+      # Step 6: Restore CDK build artifacts cache
+      - name: Restore CDK build artifacts cache
+        uses: actions/cache@v4
+        with:
+          path: ./cdk/cdk.out
+          key: ${{ runner.os }}-cdk-build-${{ hashFiles('**/cdk/**/*') }}
+          restore-keys: |
+            ${{ runner.os }}-cdk-build-
+      
+      # Step 7: Build the CDK stack
+      - name: Build CDK stack
+        working-directory: ./cdk
+        run: npx cdk synth
+      
+      # Step 8: Save updated CDK build artifacts cache
+      - name: Save CDK build artifacts cache
+        uses: actions/cache@v4
+        with:
+          path: ./cdk/cdk.out
+          key: ${{ runner.os }}-cdk-build-${{ hashFiles('**/cdk/**/*') }}
 
   # Job 3: Deploy Everything (Depends on Both Build Jobs)
   deploy:
@@ -99,17 +121,27 @@ jobs:
         with:
           path: ./cdk/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          
+      # Step 4: Restore CDK build artifacts cache
+      - name: Restore CDK build artifacts cache
+        uses: actions/cache@v4
+        with:
+          path: ./cdk/cdk.out
+          key: ${{ runner.os }}-cdk-build-${{ hashFiles('**/cdk/**/*') }}
+          restore-keys: |
+            ${{ runner.os }}-cdk-build-
 
-      # Step 4: Set up Node.js and install CDK
+      # Step 5: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: latest
           
+      #Step 6: Install CDK
       - name: Install CDK globally
         run: npm install -g aws-cdk
 
-      # Step 5: Configure AWS credentials
+      # Step 7: Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -117,12 +149,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-1
 
-      # Step 6: Bootstrap the CDK environment (if needed)
+      # Step 8: Bootstrap the CDK environment (if needed)
       - name: Bootstrap CDK
         working-directory: ./cdk
         run: npx cdk bootstrap
 
-      # Step 7: Deploy the CDK stack
+      # Step 9: Deploy the CDK stack
       - name: Deploy CDK stack
         env:
           STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
