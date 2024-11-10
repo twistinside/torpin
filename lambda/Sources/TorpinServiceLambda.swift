@@ -16,7 +16,8 @@ struct TorpinServiceLambda: SimpleLambdaHandler {
 	let steamClient = SteamClient()
 
 	func handle(_ event: Event, context: LambdaContext) async throws -> Output {
-		print("Event received: \(event)")
+		LogManager.initialize(from: context)
+		LogManager.shared.info("Event received: \(event)")
 		let isBrianTorpin = try await steamClient.isBrianTorpin()
 		return TorpinResult(isBrianTorpin: isBrianTorpin)
 	}
