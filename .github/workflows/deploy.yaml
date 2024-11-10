@@ -100,7 +100,16 @@ jobs:
           path: ./cdk/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
 
-      # Step 4: Configure AWS credentials
+      # Step 4: Set up Node.js and install CDK
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: latest
+          
+      - name: Install CDK globally
+        run: npm install -g aws-cdk
+
+      # Step 5: Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -108,12 +117,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-1
 
-      # Step 5: Bootstrap the CDK environment (if needed)
+      # Step 6: Bootstrap the CDK environment (if needed)
       - name: Bootstrap CDK
         working-directory: ./cdk
         run: npx cdk bootstrap
 
-      # Step 6: Deploy the CDK stack
+      # Step 7: Deploy the CDK stack
       - name: Deploy CDK stack
         env:
           STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
