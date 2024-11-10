@@ -13,48 +13,51 @@ jobs:
       # Step 1: Check out the repository code
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
+      # Step 2: Cache Swift Package Manager build artifacts
       - uses: actions/cache@v4
         with:
           path: ./lambda/.build
           key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-
-        
-      # Step 2: Build swift lambda code
-      - name: Build swift lambda package
+
+      # Step 3: Build Swift Lambda package
+      - name: Build Swift Lambda package
         working-directory: ./lambda
         run: swift build
 
-      # Step 2: Set up Node.js (needed for CDK)
+      # Step 4: Set up Node.js (needed for CDK)
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: latest  # Use a specific version of Node.js
 
+      # Step 5: Determine npm cache directory
       - name: Get npm cache directory
         id: npm-cache-dir
         shell: bash
         run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
 
+      # Step 6: Cache npm dependencies
       - uses: actions/cache@v4
-        id: npm-cache # use this to check for `cache-hit` ==> if: steps.npm-cache.outputs.cache-hit != 'true'
+        id: npm-cache
         with:
           path: ${{ steps.npm-cache-dir.outputs.dir }}
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 
-      # Step 3: Install CDK globally
+      # Step 7: Install CDK globally
       - name: Install CDK
         run: npm install -g aws-cdk
 
-      # Step 4: Install project dependencies (npm install)
+      # Step 8: Install project dependencies (npm install)
       - name: Install dependencies
         working-directory: ./cdk
         run: npm install
 
-      # Step 5: Configure AWS credentials for deployment
+      # Step 9: Configure AWS credentials for deployment
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -62,12 +65,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-1
 
-      # Step 6: Bootstrap the CDK environment (if needed)
+      # Step 10: Bootstrap the CDK environment (if needed)
       - name: Bootstrap CDK
         working-directory: ./cdk
         run: npx cdk bootstrap
 
-      # Step 7: Deploy the CDK stack
+      # Step 11: Deploy the CDK stack
       - name: Deploy CDK stack
         env:
           STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
