@@ -1,5 +1,4 @@
 import AsyncHTTPClient
-import Compression
 import Foundation
 
 public class SteamClient {
