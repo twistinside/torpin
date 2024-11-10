@@ -13,6 +13,11 @@ jobs:
       # Step 1: Check out the repository code
       - name: Checkout code
         uses: actions/checkout@v4
+        
+      # Step 2: Build swift lambda code
+      - name: Build swift lambda package
+        working-directory: ./lambda
+        run: swift build
 
       # Step 2: Set up Node.js (needed for CDK)
       - name: Set up Node.js
@@ -44,6 +49,8 @@ jobs:
 
       # Step 7: Deploy the CDK stack
       - name: Deploy CDK stack
+        env:
+          STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
         working-directory: ./cdk
         run: npx cdk deploy --require-approval never
         
