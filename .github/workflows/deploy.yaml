@@ -1,4 +1,4 @@
-name: Deploy CDK Stack
+name: Parallel Build and Deploy
 
 on:
   push:
@@ -6,9 +6,9 @@ on:
       - 'main'  # Triggers on push to the main branch
 
 jobs:
-  deploy:
+  # Job 1: Build the Lambda Function
+  build-lambda:
     runs-on: ubuntu-latest
-
     steps:
       # Step 1: Check out the repository code
       - name: Checkout code
@@ -22,24 +22,32 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-spm-
 
-      # Step 3: Build Swift Lambda package
+      # Step 3: Build the Swift Lambda package
       - name: Build Swift Lambda package
         working-directory: ./lambda
         run: swift build
 
-      # Step 4: Set up Node.js (needed for CDK)
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      # Step 4: Upload the Lambda build artifacts for the deploy job
+      - name: Upload Lambda build artifacts
+        uses: actions/upload-artifact@v4
         with:
-          node-version: latest  # Use a specific version of Node.js
+          name: lambda-build
+          path: ./lambda/.build  # Path to the build directory
 
-      # Step 5: Determine npm cache directory
+  # Job 2: Build the CDK Project
+  build-cdk:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Check out the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Cache npm dependencies
       - name: Get npm cache directory
         id: npm-cache-dir
         shell: bash
         run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
 
-      # Step 6: Cache npm dependencies
       - uses: actions/cache@v4
         id: npm-cache
         with:
@@ -48,16 +56,46 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      # Step 7: Install CDK globally
-      - name: Install CDK
-        run: npm install -g aws-cdk
+      # Step 3: Set up Node.js and install dependencies
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: latest
 
-      # Step 8: Install project dependencies (npm install)
-      - name: Install dependencies
+      - name: Install CDK dependencies
         working-directory: ./cdk
         run: npm install
 
-      # Step 9: Configure AWS credentials for deployment
+      # Step 4: Upload the CDK artifacts for the deploy job
+      - name: Upload CDK build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cdk-build
+          path: ./cdk  # Path to the CDK directory
+
+  # Job 3: Deploy Everything (Depends on Both Build Jobs)
+  deploy:
+    runs-on: ubuntu-latest
+    needs:
+      - build-lambda
+      - build-cdk
+    steps:
+      # Step 1: Check out the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Download build artifacts from the build jobs
+      - name: Download Lambda build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: lambda-build
+
+      - name: Download CDK build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: cdk-build
+
+      # Step 3: Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -65,15 +103,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-1
 
-      # Step 10: Bootstrap the CDK environment (if needed)
+      # Step 4: Bootstrap the CDK environment (if needed)
       - name: Bootstrap CDK
         working-directory: ./cdk
         run: npx cdk bootstrap
 
-      # Step 11: Deploy the CDK stack
+      # Step 5: Deploy the CDK stack
       - name: Deploy CDK stack
         env:
           STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
         working-directory: ./cdk
         run: npx cdk deploy --require-approval never
-        
