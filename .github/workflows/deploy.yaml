@@ -75,7 +75,7 @@ jobs:
         with:
           path: ${{ steps.npm-cache-dir.outputs.dir }}
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          
+  
       # Step 6: Restore CDK build artifacts cache
       - name: Restore CDK build artifacts cache
         uses: actions/cache@v4
@@ -84,12 +84,12 @@ jobs:
           key: ${{ runner.os }}-cdk-build-${{ hashFiles('**/cdk/**/*') }}
           restore-keys: |
             ${{ runner.os }}-cdk-build-
-      
+  
       # Step 7: Build the CDK stack
       - name: Build CDK stack
         working-directory: ./cdk
         run: npx cdk synth
-      
+  
       # Step 8: Save updated CDK build artifacts cache
       - name: Save CDK build artifacts cache
         uses: actions/cache@v4
@@ -121,7 +121,7 @@ jobs:
         with:
           path: ./cdk/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          
+  
       # Step 4: Restore CDK build artifacts cache
       - name: Restore CDK build artifacts cache
         uses: actions/cache@v4
@@ -136,12 +136,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: latest
-          
-      #Step 6: Install CDK
+  
+      # Step 6: Install dependencies
+      - name: Install CDK dependencies
+        working-directory: ./cdk
+        run: npm install
+  
+      #Step 7: Install CDK
       - name: Install CDK globally
         run: npm install -g aws-cdk
 
-      # Step 7: Configure AWS credentials
+      # Step 8: Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -149,7 +154,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-1
 
-      # Step 8: Bootstrap the CDK environment (if needed)
+      # Step 9: Bootstrap the CDK environment (if needed)
       - name: Bootstrap CDK
         working-directory: ./cdk
         run: npx cdk bootstrap
