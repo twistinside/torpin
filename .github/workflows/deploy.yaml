@@ -24,9 +24,9 @@ jobs:
             ${{ runner.os }}-spm-
 
       # Step 3: Build the Swift Lambda package
-      - name: Build Swift Lambda package
+      - name: Package swift lambda
         working-directory: ./lambda
-        run: swift build
+        run: swift package --disable-sandbox plugin archive
 
       # Step 4: Save updated Swift cache
       - name: Save Swift cache
