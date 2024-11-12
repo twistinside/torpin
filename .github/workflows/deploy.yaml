@@ -22,13 +22,18 @@ jobs:
           key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-
-
+            
       # Step 3: Build the Swift Lambda package
+      - name: Build swift lambda
+        working-directory: ./lambda
+        run: swift build
+  
+      # Step 4: Package the Swift Lambda
       - name: Package swift lambda
         working-directory: ./lambda
         run: swift package --disable-sandbox plugin archive
 
-      # Step 4: Save updated Swift cache
+      # Step 5: Save updated Swift cache
       - name: Save Swift cache
         uses: actions/cache@v4
         with:
