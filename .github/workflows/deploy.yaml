@@ -9,7 +9,6 @@ jobs:
   # Job 1: Build the Lambda Function
   build-lambda:
     runs-on: ubuntu-latest
-    options: --memory=16g --cpus=2
     steps:
       # Step 1: Check out the repository code
       - name: Checkout code
