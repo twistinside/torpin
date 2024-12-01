@@ -27,11 +27,6 @@ jobs:
       - name: Build swift lambda
         working-directory: ./lambda
         run: swift build
-  
-      # Step 4: Package the Swift Lambda
-      - name: Package swift lambda
-        working-directory: ./lambda
-        run: swift package --disable-sandbox plugin archive
 
       # Step 5: Save updated Swift cache
       - name: Save Swift cache
@@ -39,6 +34,11 @@ jobs:
         with:
           path: ./lambda/.build
           key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+  
+      # Step 4: Package the Swift Lambda
+      - name: Package swift lambda
+        working-directory: ./lambda
+        run: swift package --disable-sandbox plugin archive
 
   # Job 2: Build the CDK Project
   build-cdk:

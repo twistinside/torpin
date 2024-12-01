@@ -6,7 +6,7 @@ import HTTPTypes
 struct TorpinResult: Codable, CustomStringConvertible {
 	let isBrianTorpin: Bool
 	var description: String {
-		return "{isBrianTorpin: \(isBrianTorpin)}"
+		return "{\"isBrianTorpin\": \(isBrianTorpin)}"
 	}
 }
 
@@ -24,6 +24,6 @@ struct TorpinServiceLambda: SimpleLambdaHandler {
 		LogManager.shared.info("Event received: \(event)")
 		let isBrianTorpin = try await steamClient.isBrianTorpin()
 		let result = TorpinResult(isBrianTorpin: isBrianTorpin)		
-		return APIGatewayResponse(statusCode: HTTPResponse.Status(200) ,body: "\(result)");
+		return APIGatewayResponse(statusCode: HTTPResponse.Status(200), body: "\(result)");
 	}
 }
