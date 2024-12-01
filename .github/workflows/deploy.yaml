@@ -22,7 +22,7 @@ jobs:
           key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-
-            
+  
       # Step 3: Build the Swift Lambda package
       - name: Build swift lambda
         working-directory: ./lambda
