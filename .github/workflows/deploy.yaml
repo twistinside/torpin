@@ -3,169 +3,56 @@ name: Torpin Service Lambda
 on:
   push:
     branches:
-      - 'main'  # Triggers on push to the main branch
+      - 'main'
 
 jobs:
-  # Job 1: Build the Lambda Function
-  build-lambda:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       # Step 1: Check out the repository code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Cache Swift Package Manager build artifacts
-      - name: Restore Swift cache
-        uses: actions/cache@v4
-        with:
-          path: ./lambda/.build
-          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-spm-
-  
-      # Step 3: Build the Swift Lambda package
-      - name: Build swift lambda
+      # Step 2: Build the Swift Lambda
+      - name: Build Swift Lambda
         working-directory: ./lambda
         run: swift build
 
-      # Step 5: Save updated Swift cache
-      - name: Save Swift cache
-        uses: actions/cache@v4
-        with:
-          path: ./lambda/.build
-          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
-  
-      # Step 4: Package the Swift Lambda
-      - name: Package swift lambda
+      # Step 3: Package the Swift Lambda to a specific folder
+      - name: Package Swift Lambda
         working-directory: ./lambda
-        run: swift package archive --disable-sandbox
+        run: swift package --disable-sandbox plugin archive --output-path ./build/artifacts
 
-  # Job 2: Build the CDK Project
-  build-cdk:
-    runs-on: ubuntu-latest
-    steps:
-      # Step 1: Check out the repository code
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Step 2: Cache npm dependencies
-      - name: Get npm cache directory
-        id: npm-cache-dir
-        shell: bash
-        run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
-
-      - name: Restore CDK npm cache
-        uses: actions/cache@v4
-        id: npm-cache
-        with:
-          path: ${{ steps.npm-cache-dir.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      # Step 3: Set up Node.js
+      # Step 4: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: latest
 
-      # Step 4: Install dependencies
-      - name: Install CDK dependencies
+      # Step 5: Install CDK dependencies
+      - name: Install CDK Dependencies
         working-directory: ./cdk
         run: npm install
 
-      # Step 5: Save updated npm cache
-      - name: Save CDK npm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.npm-cache-dir.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-  
-      # Step 6: Restore CDK build artifacts cache
-      - name: Restore CDK build artifacts cache
-        uses: actions/cache@v4
-        with:
-          path: ./cdk/cdk.out
-          key: ${{ runner.os }}-cdk-build-${{ hashFiles('**/cdk/**/*') }}
-          restore-keys: |
-            ${{ runner.os }}-cdk-build-
-  
-      # Step 7: Build the CDK stack
-      - name: Build CDK stack
-        working-directory: ./cdk
-        run: npx cdk synth
-  
-      # Step 8: Save updated CDK build artifacts cache
-      - name: Save CDK build artifacts cache
-        uses: actions/cache@v4
-        with:
-          path: ./cdk/cdk.out
-          key: ${{ runner.os }}-cdk-build-${{ hashFiles('**/cdk/**/*') }}
-
-  # Job 3: Deploy Everything (Depends on Both Build Jobs)
-  deploy:
-    runs-on: ubuntu-latest
-    needs:
-      - build-lambda
-      - build-cdk
-    steps:
-      # Step 1: Check out the repository code
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Step 2: Restore Swift build cache
-      - name: Restore Swift cache
-        uses: actions/cache@v4
-        with:
-          path: ./lambda/.build
-          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
-
-      # Step 3: Restore CDK npm cache
-      - name: Restore CDK npm cache
-        uses: actions/cache@v4
-        with:
-          path: ./cdk/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-  
-      # Step 4: Restore CDK build artifacts cache
-      - name: Restore CDK build artifacts cache
-        uses: actions/cache@v4
-        with:
-          path: ./cdk/cdk.out
-          key: ${{ runner.os }}-cdk-build-${{ hashFiles('**/cdk/**/*') }}
-          restore-keys: |
-            ${{ runner.os }}-cdk-build-
-
-      # Step 5: Set up Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: latest
-  
-      # Step 6: Install dependencies
-      - name: Install CDK dependencies
-        working-directory: ./cdk
-        run: npm install
-  
-      #Step 7: Install CDK
-      - name: Install CDK globally
+      # Step 6: Install CDK globally
+      - name: Install CDK Globally
         run: npm install -g aws-cdk
 
-      # Step 8: Configure AWS credentials
-      - name: Configure AWS credentials
+      # Step 7: Configure AWS Credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-1
 
-      # Step 9: Bootstrap the CDK environment (if needed)
+      # Step 8: Bootstrap the CDK environment (if needed)
       - name: Bootstrap CDK
         working-directory: ./cdk
         run: npx cdk bootstrap
 
-      # Step 9: Deploy the CDK stack
-      - name: Deploy CDK stack
+      # Step 9: Deploy the CDK Stack
+      - name: Deploy CDK Stack
         env:
           STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
         working-directory: ./cdk
