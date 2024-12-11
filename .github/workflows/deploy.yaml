@@ -21,7 +21,7 @@ jobs:
       # Step 3: Package the Swift Lambda to a specific folder
       - name: Package Swift Lambda
         working-directory: ./lambda
-        run: swift package --disable-sandbox plugin archive --output-path ./build/artifacts
+        run: swift package archive --disable-sandbox plugin --output-path ./build/artifacts
 
       # Step 4: Set up Node.js
       - name: Set up Node.js
