@@ -38,7 +38,7 @@ jobs:
       # Step 4: Package the Swift Lambda
       - name: Package swift lambda
         working-directory: ./lambda
-        run: swift package --disable-sandbox plugin archive
+        run: swift package archive --disable-sandbox
 
   # Job 2: Build the CDK Project
   build-cdk:
