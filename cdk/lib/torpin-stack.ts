@@ -16,19 +16,12 @@ export class TorpinStack extends Stack {
 
     // Create Lambda function
     const myLambda = new Function(this, 'TorpinApi', {
-      runtime: Runtime.NODEJS_20_X,
-      code: Code.fromInline(`
-      exports.handler = async function(event) {
-        return {
-          statusCode: 200,
-          body: JSON.stringify({ isBrianTorpin: true })
-        };
-      };
-      `),
+      runtime: Runtime.FROM_IMAGE,  // Use the correct runtime for your Swift Lambda
+      code: Code.fromAsset(path.join(__dirname, '../lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/TorpinServiceLambda/TorpinServiceLambda.zip')), // Path to the packaged Lambda
+      handler: 'main',  // Swift Lambda typically uses 'main' as the entry point
       environment: {
           STEAM_API_KEY: process.env.STEAM_API_KEY || '',
       },
-      handler: 'index.handler',
     });
     
     // Create an IAM Role for API Gateway to push logs to CloudWatch
