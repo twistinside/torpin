@@ -1,0 +1,13 @@
+{
+  "actions" : {
+	"build" : {
+	  "enabled" : true,
+	  "script" : "cd lambda\nswift build\nsswift package archive --disable-sandbox plugin\ncd ..\cdk\nnpm run build\n"
+	},
+	"clean" : {
+	  "enabled" : true,
+	  "script" : "cd lambda\nswift package clean\ncd ..\cdk\nnpm run clean"
+	}
+  }
+}
+

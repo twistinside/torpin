@@ -25,7 +25,7 @@ let package = Package(
                 .product(name: "AWSLambdaEvents", package: "swift-aws-lambda-events"),
                 .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime")
             ],
-            path: "Sources"
+            path: "Sources/APILambda"
         )
     ]
 )
