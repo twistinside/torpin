@@ -2,7 +2,7 @@ name: Build on PRs
 
 on:
   pull_request:
-    branches: [ mainline ]
+    branches: [ main ]
 
 jobs:
   build:
