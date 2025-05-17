@@ -1,0 +1,40 @@
+name: Build on PRs
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Swift Lambda
+        working-directory: ./lambda
+        run: swift build
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Cache CDK node_modules
+        uses: actions/cache@v4
+        with:
+          path: ./cdk/node_modules
+          key: cdk-node-modules-${{ runner.os }}-${{ hashFiles('cdk/package-lock.json') }}
+          restore-keys: |
+            cdk-node-modules-${{ runner.os }}-
+
+      - name: Install CDK Dependencies
+        working-directory: ./cdk
+        run: npm install
+
+      - name: Install CDK Globally
+        run: npm install -g aws-cdk
+
+      - name: Synthesize CDK
+        working-directory: ./cdk
+        run: npx cdk synth

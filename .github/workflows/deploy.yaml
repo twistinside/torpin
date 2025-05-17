@@ -9,36 +9,43 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Check out the repository code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Build the Swift Lambda
-      - name: Build Swift Lambda
-        working-directory: ./lambda
-        run: swift build
+      - name: Cache Swift Lambda archive
+        id: lambda-cache
+        uses: actions/cache@v4
+        with:
+          path: lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/TorpinServiceLambda/TorpinServiceLambda.zip
+          key: swift-lambda-zip-${{ runner.os }}-${{ hashFiles('lambda/Package.resolved', 'lambda/Sources/**', 'lambda/Package.swift') }}
+          restore-keys: |
+            swift-lambda-zip-${{ runner.os }}-
 
-      # Step 3: Package the Swift Lambda to a specific folder
       - name: Package Swift Lambda
+        if: steps.lambda-cache.outputs.cache-hit != 'true'
         working-directory: ./lambda
         run: swift package archive --disable-sandbox plugin
 
-      # Step 4: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: '22'
 
-      # Step 5: Install CDK dependencies
+      - name: Cache CDK node_modules
+        uses: actions/cache@v4
+        with:
+          path: cdk/node_modules
+          key: cdk-node-modules-${{ runner.os }}-${{ hashFiles('cdk/package-lock.json') }}
+          restore-keys: |
+            cdk-node-modules-${{ runner.os }}-
+
       - name: Install CDK Dependencies
         working-directory: ./cdk
         run: npm install
 
-      # Step 6: Install CDK globally
       - name: Install CDK Globally
         run: npm install -g aws-cdk
 
-      # Step 7: Configure AWS Credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -46,12 +53,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-1
 
-      # Step 8: Bootstrap the CDK environment (if needed)
       - name: Bootstrap CDK
         working-directory: ./cdk
         run: npx cdk bootstrap
 
-      # Step 9: Deploy the CDK Stack
       - name: Deploy CDK Stack
         env:
           STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
