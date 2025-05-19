@@ -37,15 +37,7 @@ jobs:
       - name: Install CDK Globally
         run: npm install -g aws-cdk
 
-      # Step 7: Configure AWS Credentials
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-1
-
-      # Step 8: Synthesize the CDK stack (build only)
+      # Step 7: Synthesize the CDK stack (build only)
       - name: Synthesize CDK
         working-directory: ./cdk
         run: npx cdk synth
