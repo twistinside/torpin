@@ -38,16 +38,25 @@ jobs:
         with:
           node-version: '22'
 
-      # Step 6: Install CDK dependencies
+      # Step 6: Access cache for npm
+      - name: Cache CDK node_modules
+        uses: actions/cache@v4
+        with:
+          path: ./cdk/node_modules
+          key: cdk-node-modules-${{ runner.os }}-${{ hashFiles('cdk/package-lock.json') }}
+          restore-keys: |
+            cdk-node-modules-${{ runner.os }}-
+
+      # Step 7: Install CDK dependencies
       - name: Install CDK Dependencies
         working-directory: ./cdk
         run: npm install
 
-      # Step 7: Install CDK globally
+      # Step 8: Install CDK globally
       - name: Install CDK Globally
         run: npm install -g aws-cdk
 
-      # Step 8: Configure AWS Credentials
+      # Step 9: Configure AWS Credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -55,12 +64,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-1
 
-      # Step 9: Bootstrap the CDK environment (if needed)
+      # Step 10: Bootstrap the CDK environment (if needed)
       - name: Bootstrap CDK
         working-directory: ./cdk
         run: npx cdk bootstrap
 
-      # Step 10: Deploy the CDK Stack
+      # Step 11: Deploy the CDK Stack
       - name: Deploy CDK Stack
         env:
           STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
