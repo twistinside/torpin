@@ -37,16 +37,25 @@ jobs:
         with:
           node-version: '22'
 
-      # Step 6: Install CDK dependencies
+      # Step 6: Access cache for npm
+      - name: Cache CDK node_modules
+        uses: actions/cache@v4
+        with:
+          path: ./cdk/node_modules
+          key: cdk-node-modules-${{ runner.os }}-${{ hashFiles('cdk/package-lock.json') }}
+          restore-keys: |
+            cdk-node-modules-${{ runner.os }}-
+
+      # Step 7: Install CDK dependencies
       - name: Install CDK Dependencies
         working-directory: ./cdk
         run: npm install
 
-      # Step 7: Install CDK globally
+      # Step 8: Install CDK globally
       - name: Install CDK Globally
         run: npm install -g aws-cdk
 
-      # Step 8: Synthesize the CDK stack (build only)
+      # Step 9: Synthesize the CDK stack (build only)
       - name: Synthesize CDK
         working-directory: ./cdk
         run: npx cdk synth
