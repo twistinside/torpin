@@ -12,32 +12,41 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Build the Swift Lambda
+      # Step 2: Access cache for swift
+      - name: Cache Swift build artifacts
+        uses: actions/cache@v4
+        with:
+          path: ./lambda/.build
+          key: swift-build-${{ runner.os }}-${{ hashFiles('lambda/Package.resolved') }}
+          restore-keys: |
+            swift-build-${{ runner.os }}-
+
+      # Step 3: Build the Swift Lambda
       - name: Build Swift Lambda
         working-directory: ./lambda
         run: swift build
 
-      # Step 3: Package the Swift Lambda to a specific folder
+      # Step 4: Package the Swift Lambda to a specific folder
       - name: Package Swift Lambda
         working-directory: ./lambda
         run: swift package archive --disable-sandbox plugin
 
-      # Step 4: Set up Node.js
+      # Step 5: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      # Step 5: Install CDK dependencies
+      # Step 6: Install CDK dependencies
       - name: Install CDK Dependencies
         working-directory: ./cdk
         run: npm install
 
-      # Step 6: Install CDK globally
+      # Step 7: Install CDK globally
       - name: Install CDK Globally
         run: npm install -g aws-cdk
 
-      # Step 7: Synthesize the CDK stack (build only)
+      # Step 8: Synthesize the CDK stack (build only)
       - name: Synthesize CDK
         working-directory: ./cdk
         run: npx cdk synth
