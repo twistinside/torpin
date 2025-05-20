@@ -18,8 +18,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-             lambda/
-             !lambda/.build/*/release/ModuleCache
+            lambda/.build/checkouts
+            lambda/.build/artifacts
           key: swift-build-${{ runner.os }}-${{ hashFiles('lambda/Package.resolved') }}
           restore-keys: |
             swift-build-${{ runner.os }}-
