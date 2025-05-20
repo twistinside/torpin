@@ -12,24 +12,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Access cache for swift
-      - name: Cache Swift build artifacts
+      # Step 2: Cache lambda product
+      - name: Cache Swift Lambda archive
+        id: lambda-cache
         uses: actions/cache@v4
         with:
-          path: |
-            lambda/.build/checkouts
-            lambda/.build/artifacts
-          key: swift-build-${{ runner.os }}-${{ hashFiles('lambda/Package.resolved') }}
+          path: lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/TorpinServiceLambda/TorpinServiceLambda.zip
+          key: swift-lambda-zip-${{ runner.os }}-${{ hashFiles('lambda/Package.resolved', 'lambda/Sources/**', 'lambda/Package.swift') }}
           restore-keys: |
-            swift-build-${{ runner.os }}-
+            swift-lambda-zip-${{ runner.os }}-
 
       # Step 3: Build the Swift Lambda
       - name: Build Swift Lambda
+        if: steps.lambda-cache.outputs.cache-hit != 'true'
         working-directory: ./lambda
         run: swift build
-
-      # Step 4: Package the Swift Lambda to a specific folder
+      
+      # Step 4: Package the Swift Lambda
       - name: Package Swift Lambda
+        if: steps.lambda-cache.outputs.cache-hit != 'true'
         working-directory: ./lambda
         run: swift package archive --disable-sandbox plugin
 
