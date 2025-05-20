@@ -16,7 +16,9 @@ jobs:
       - name: Cache Swift build artifacts
         uses: actions/cache@v4
         with:
-          path: ./lambda/.build
+          path: |
+            lambda/.build/checkouts
+            lambda/.build/artifacts
           key: swift-build-${{ runner.os }}-${{ hashFiles('lambda/Package.resolved') }}
           restore-keys: |
             swift-build-${{ runner.os }}-
