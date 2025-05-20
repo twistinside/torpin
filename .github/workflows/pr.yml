@@ -8,39 +8,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Check out the repository code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Cache lambda product
-      - name: Cache Swift Lambda archive
-        id: lambda-cache
-        uses: actions/cache@v4
-        with:
-          path: lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/TorpinServiceLambda/TorpinServiceLambda.zip
-          key: swift-lambda-zip-${{ runner.os }}-${{ hashFiles('lambda/Package.resolved', 'lambda/Sources/**', 'lambda/Package.swift') }}
-          restore-keys: |
-            swift-lambda-zip-${{ runner.os }}-
-
-      # Step 3: Build the Swift Lambda
       - name: Build Swift Lambda
-        if: steps.lambda-cache.outputs.cache-hit != 'true'
         working-directory: ./lambda
         run: swift build
-      
-      # Step 4: Package the Swift Lambda
-      - name: Package Swift Lambda
-        if: steps.lambda-cache.outputs.cache-hit != 'true'
-        working-directory: ./lambda
-        run: swift package archive --disable-sandbox plugin
 
-      # Step 5: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      # Step 6: Access cache for npm
       - name: Cache CDK node_modules
         uses: actions/cache@v4
         with:
@@ -49,16 +28,13 @@ jobs:
           restore-keys: |
             cdk-node-modules-${{ runner.os }}-
 
-      # Step 7: Install CDK dependencies
       - name: Install CDK Dependencies
         working-directory: ./cdk
         run: npm install
 
-      # Step 8: Install CDK globally
       - name: Install CDK Globally
         run: npm install -g aws-cdk
 
-      # Step 9: Synthesize the CDK stack (build only)
       - name: Synthesize CDK
         working-directory: ./cdk
         run: npx cdk synth
