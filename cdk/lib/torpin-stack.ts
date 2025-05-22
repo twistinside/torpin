@@ -8,13 +8,21 @@ import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { ApiGatewayDomain } from 'aws-cdk-lib/aws-route53-targets';
 import { Role, ServicePrincipal, ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { Table, AttributeType, BillingMode } from 'aws-cdk-lib/aws-dynamodb';
+import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
+import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 
 export class TorpinStack extends Stack {
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    // Create Lambda function
+    const table = new Table(this, 'TorpinTable', {
+      tableName: 'Torpin',
+      partitionKey: { name: 'id', type: AttributeType.STRING },
+      billingMode: BillingMode.PAY_PER_REQUEST,
+    });
+
     const myLambda = new Function(this, 'TorpinApi', {
       runtime: Runtime.PROVIDED_AL2023,
       code: Code.fromAsset(join(__dirname, '../../lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/TorpinServiceLambda/TorpinServiceLambda.zip')),
@@ -23,6 +31,23 @@ export class TorpinStack extends Stack {
           STEAM_API_KEY: process.env.STEAM_API_KEY || '',
       },
     });
+
+    table.grantReadData(myLambda);
+
+    const eventHandler = new Function(this, 'EventHandlerLambda', {
+      runtime: Runtime.PROVIDED_AL2023,
+      code: Code.fromAsset(join(
+        __dirname,
+        '../../lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/EventHandlerLambda/EventHandlerLambda.zip'
+      )),
+      handler: 'main',
+      environment: {
+        TABLE_NAME: table.tableName,
+        STEAM_API_KEY: process.env.STEAM_API_KEY || '',
+      },
+    });
+
+    table.grantReadWriteData(eventHandler);
 
     // Create an IAM Role for API Gateway to push logs to CloudWatch
     const apiGatewayCloudWatchRole = new Role(this, 'ApiGatewayCloudWatchRole', {
