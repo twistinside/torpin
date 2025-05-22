@@ -1,14 +1,14 @@
 import { join } from 'path';
-import { Stack, StackProps } from 'aws-cdk-lib';
+import { Duration, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AccessLogFormat, CfnAccount, DomainName, EndpointType, LambdaIntegration, LogGroupLogDestination, MethodLoggingLevel, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { ApiGatewayDomain } from 'aws-cdk-lib/aws-route53-targets';
-import { Role, ServicePrincipal, ManagedPolicy } from 'aws-cdk-lib/aws-iam';
+import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
-import { Table, AttributeType, BillingMode } from 'aws-cdk-lib/aws-dynamodb';
+import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 
@@ -46,6 +46,11 @@ export class TorpinStack extends Stack {
         STEAM_API_KEY: process.env.STEAM_API_KEY || '',
       },
     });
+
+    const rule = new Rule(this, 'EveryMinuteRule', {
+      schedule: Schedule.rate(Duration.minutes(1)),
+    });
+    rule.addTarget(new LambdaFunction(eventHandler));
 
     table.grantReadWriteData(eventHandler);
 
