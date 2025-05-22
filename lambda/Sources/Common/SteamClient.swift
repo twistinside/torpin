@@ -7,7 +7,9 @@ public class SteamClient {
 	var steamID: String? = ProcessInfo.processInfo.environment["STEAM_ID"];
 	var steamKey: String? = ProcessInfo.processInfo.environment["STEAM_API_KEY"];
 	
-	func isBrianTorpin() async throws -> Bool {
+	public init() { }
+	
+	public func isBrianTorpin() async throws -> Bool {
 		guard let steamID, let steamKey else {
 			LogManager.shared.error("No steam key present in environment")
 			return false
