@@ -16,7 +16,7 @@ jobs:
         id: lambda-cache
         uses: actions/cache@v4
         with:
-          path: lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/TorpinServiceLambda/TorpinServiceLambda.zip
+          path: lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/
           key: swift-lambda-zip-${{ runner.os }}-${{ hashFiles('lambda/Package.resolved', 'lambda/Sources/**', 'lambda/Package.swift') }}
           restore-keys: |
             swift-lambda-zip-${{ runner.os }}-
