@@ -19,8 +19,9 @@ export class TorpinStack extends Stack {
 
     const table = new Table(this, 'TorpinTable', {
       tableName: 'Torpin',
-      partitionKey: { name: 'id', type: AttributeType.STRING },
-      billingMode: BillingMode.PAY_PER_REQUEST,
+      partitionKey: { name: 'recordType', type: AttributeType.STRING },
+      sortKey:      { name: 'date', type: AttributeType.STRING },
+      billingMode:  BillingMode.PAY_PER_REQUEST,
     });
 
     const myLambda = new Function(this, 'TorpinApi', {
@@ -29,6 +30,7 @@ export class TorpinStack extends Stack {
       handler: 'main',
       environment: {
           STEAM_API_KEY: process.env.STEAM_API_KEY || '',
+          STEAM_ID: process.env.STEAM_ID || '',
       },
     });
 
@@ -42,8 +44,8 @@ export class TorpinStack extends Stack {
       )),
       handler: 'main',
       environment: {
-        TABLE_NAME: table.tableName,
         STEAM_API_KEY: process.env.STEAM_API_KEY || '',
+        STEAM_ID: process.env.STEAM_ID || '',
       },
     });
 
