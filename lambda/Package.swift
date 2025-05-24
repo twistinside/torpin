@@ -13,6 +13,7 @@ let package = Package(
         .executable(name: "EventHandlerLambda", targets: ["EventHandlerLambda"])
     ],
     dependencies: [
+        .package(url: "https://github.com/awslabs/aws-sdk-swift", from: "1.0.0"),
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.23.1"),
         .package(url: "https://github.com/swift-server/swift-aws-lambda-events.git", from: "1.0.0"),
         .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", from: "1.0.0-alpha")
@@ -38,6 +39,7 @@ let package = Package(
             name: "Common",
             dependencies: [
                 .product(name: "AsyncHTTPClient", package: "async-http-client"),
+                .product(name: "AWSDynamoDB", package: "aws-sdk-swift"),
                 .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime")
             ],
             path: "Sources/Common"

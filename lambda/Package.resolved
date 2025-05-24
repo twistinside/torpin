@@ -1,5 +1,5 @@
 {
-  "originHash" : "e160b947bd913d19fef02d90c10107b13b495ea10cc3f62a10b9ac6de0488b2c",
+  "originHash" : "ceccd01e7606b2785aa8fb64d0b4cb2a7213255f1379a677fa30e60600429b15",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -11,12 +11,48 @@
       }
     },
     {
+      "identity" : "aws-crt-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/awslabs/aws-crt-swift",
+      "state" : {
+        "revision" : "5be6550f81c760cceb0a43c30d4149ac55c5640c",
+        "version" : "0.52.1"
+      }
+    },
+    {
+      "identity" : "aws-sdk-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/awslabs/aws-sdk-swift",
+      "state" : {
+        "revision" : "f8ec9a0610f4918838c807096c53701dce9300b1",
+        "version" : "1.3.23"
+      }
+    },
+    {
+      "identity" : "smithy-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/smithy-lang/smithy-swift",
+      "state" : {
+        "revision" : "aa4cb4585232b52f116286e432dca055df698863",
+        "version" : "0.131.0"
+      }
+    },
+    {
       "identity" : "swift-algorithms",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-algorithms.git",
       "state" : {
         "revision" : "87e50f483c54e6efd60e885f7f5aa946cee68023",
         "version" : "1.2.1"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser.git",
+      "state" : {
+        "revision" : "41982a3656a71c768319979febd796c6fd111d5c",
+        "version" : "1.5.0"
       }
     },
     {
