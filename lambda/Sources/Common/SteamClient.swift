@@ -10,8 +10,13 @@ public class SteamClient {
 	public init() { }
 	
 	public func isBrianTorpin() async throws -> Bool {
-		guard let steamID, let steamKey else {
+		guard let steamKey else {
 			LogManager.shared.error("No steam key present in environment")
+			return false
+		}
+		
+		guard let steamID else {
+			LogManager.shared.error("No steam ID present in environment")
 			return false
 		}
 		
