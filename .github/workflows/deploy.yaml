@@ -60,6 +60,6 @@ jobs:
       - name: Deploy CDK Stack
         env:
           STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
-          STEAM_ID: ${{ secrets.STEAM_API_KEY }}
+          STEAM_ID: ${{ secrets.STEAM_ID }}
         working-directory: ./cdk
         run: npx cdk deploy --require-approval never
