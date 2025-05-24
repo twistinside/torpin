@@ -9,7 +9,7 @@ struct EventHandlerLambda: LambdaHandler {
     typealias In = EventBridgeEvent<CloudwatchDetails.Scheduled>
     typealias Out = Void
 
-    let region = "us-west-2"
+    let region = "us-west-1"
 
     let steamClient: SteamClient
     let recordTable: RecordTable
