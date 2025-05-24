@@ -67,7 +67,7 @@ jobs:
       - name: Install web Dependencies
         working-directory: ./astro
         run: npm install
-        
+
       - name: Build web site
         working-directory: ./astro
         run: npm run build
@@ -80,7 +80,7 @@ jobs:
         key: web-dist-${{ runner.os }}-${{ hashFiles('astro/src/**', 'astro/public/**', 'astro/astro.config.*', 'astro/package.json') }}
         restore-keys: |
           web-dist-${{ runner.os }}-
-        
+
       - name: Upload to Porkbun
         if: steps.web-cache.outputs.cache-hit != 'true'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
