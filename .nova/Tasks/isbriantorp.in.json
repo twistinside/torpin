@@ -1,0 +1,16 @@
+{
+  "actions" : {
+    "build" : {
+      "enabled" : true,
+      "script" : "cd astro && npm install && npm run build"
+    },
+    "clean" : {
+      "enabled" : true,
+      "script" : "cd astro && rm -rf node_modules && rm package-lock.json && rm -rf dist"
+    },
+    "run" : {
+      "enabled" : true,
+      "script" : "cd astro && npm install && npm run dev"
+    }
+  }
+}

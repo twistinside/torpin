@@ -63,3 +63,21 @@ jobs:
           STEAM_ID: ${{ secrets.STEAM_ID }}
         working-directory: ./cdk
         run: npx cdk deploy --require-approval never
+
+      - name: Install web Dependencies
+        working-directory: ./astro
+        run: npm install
+        
+      - name: Build web site
+        working-directory: ./astro
+        run: npm run build
+        
+      - name: Upload to Porkbun
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: pixie-ftp.porkbun.com
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./astro/dist/
+          dangerous-clean-slate: true
+          dry-run: true
