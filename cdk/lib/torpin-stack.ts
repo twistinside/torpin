@@ -25,7 +25,7 @@ export class TorpinStack extends Stack {
     });
 
     const myLambda = new Function(this, 'TorpinApi', {
-      runtime: Runtime.PROVIDED_AL2023,
+      runtime: Runtime.PROVIDED_AL2,
       code: Code.fromAsset(join(__dirname, '../../lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/TorpinServiceLambda/TorpinServiceLambda.zip')),
       handler: 'main',
       environment: {
@@ -37,7 +37,7 @@ export class TorpinStack extends Stack {
     table.grantReadData(myLambda);
 
     const eventHandler = new Function(this, 'EventHandlerLambda', {
-      runtime: Runtime.PROVIDED_AL2023,
+      runtime: Runtime.PROVIDED_AL2,
       code: Code.fromAsset(join(
         __dirname,
         '../../lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/EventHandlerLambda/EventHandlerLambda.zip'
