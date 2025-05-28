@@ -76,10 +76,10 @@ jobs:
         id: web-cache
         uses: actions/cache@v4
         with:
-        path: astro/dist
-        key: web-dist-${{ runner.os }}-${{ hashFiles('astro/src/**', 'astro/public/**', 'astro/astro.config.*', 'astro/package.json') }}
-        restore-keys: |
-          web-dist-${{ runner.os }}-
+          path: astro/dist
+          key: web-dist-${{ runner.os }}-${{ hashFiles('astro/src/**', 'astro/public/**', 'astro/astro.config.*', 'astro/package.json') }}
+          restore-keys: |
+            web-dist-${{ runner.os }}-
 
       - name: Upload to Porkbun
         if: steps.web-cache.outputs.cache-hit != 'true'
