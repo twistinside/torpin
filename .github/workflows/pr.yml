@@ -39,3 +39,11 @@ jobs:
       - name: Synthesize CDK
         working-directory: ./cdk
         run: npx cdk synth
+
+      - name: Install web Dependencies
+        working-directory: ./astro
+        run: npm install
+
+      - name: Build web site
+        working-directory: ./astro
+        run: npm run build
