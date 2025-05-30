@@ -6,7 +6,7 @@
     },
     "clean" : {
       "enabled" : true,
-      "script" : "cd lambda\nswift package clean"
+      "script" : "cd lambda\nswift package clean\ngit submodule deinit -f --all"
     },
     "run" : {
       "enabled" : true,
