@@ -2,9 +2,10 @@ import AWSDynamoDB
 import Foundation
 
 public struct TorpinRecord: Codable {
-    let date: Date
+    public let date: Date
+    public let torpin: Bool
+
     let recordType: RecordType
-    let torpin: Bool
 
     public init(date: Date, torpin: Bool) {
         self.date = date
