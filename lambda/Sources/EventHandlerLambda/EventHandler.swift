@@ -1,4 +1,4 @@
-import AWSDynamoDB
+@preconcurrency import AWSDynamoDB
 import AWSLambdaRuntime
 import AWSLambdaEvents
 import Common
@@ -24,26 +24,28 @@ struct EventHandlerLambda: LambdaHandler {
         self.recordTable = RecordTable(client: client)
         self.sessionManager = SessionManager(client: client)
     }
-    
+
     func handle(_ event: In, context: LambdaContext) async throws -> Out {
         LogManager.shared.info("Event triggered")
+
+        let date = Date()
 
         async let torpin = steamClient.isBrianTorpin()
         async let active = sessionManager.hasActiveSession()
         let (isTorpin, hasActive) = try await (torpin, active)
 
-        let torpinRecord = TorpinRecord(date: Date(), torpin: isTorpin)
-        _ = try await recordTable.add(torpinRecord)
-
         switch (isTorpin, hasActive) {
         case (true, false):
-            try await sessionManager.createSession(at: torpinRecord.date)
+            try await sessionManager.createSession(at: date)
         case (false, true):
-            try await sessionManager.closeActiveSession(at: torpinRecord.date)
+            try await sessionManager.closeActiveSession(at: date)
         default:
             break
         }
 
-        LogManager.shared.info("Brian is torpin: \(torpin)")
+        let torpinRecord = TorpinRecord(date: date, torpin: isTorpin)
+        _ = try await recordTable.add(torpinRecord)
     }
 }
+
+extension EventHandlerLambda: @unchecked Sendable {}
