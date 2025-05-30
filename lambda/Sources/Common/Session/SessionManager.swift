@@ -1,4 +1,4 @@
-import AWSDynamoDB
+@preconcurrency import AWSDynamoDB
 import Foundation
 
 public actor SessionManager {
@@ -60,3 +60,5 @@ public actor SessionManager {
         return nil
     }
 }
+
+extension SessionManager: @unchecked Sendable {}

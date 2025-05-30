@@ -61,6 +61,8 @@ public class SteamClient {
 	}
 }
 
+extension SteamClient: @unchecked Sendable {}
+
 struct SteamResponse: Codable {
 	let response: PlayersResponse
 }
