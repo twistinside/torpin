@@ -11,6 +11,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Remove system OpenSSL headers
+        run: sudo apt-get remove -y libssl-dev
+
       - name: Build Swift Lambda
         working-directory: ./lambda
         run: swift build
