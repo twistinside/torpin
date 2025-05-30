@@ -11,7 +11,7 @@
     "synth": "cdk synth"
   },
   "devDependencies": {
-    "@types/node": "22.15.19",
+    "@types/node": "22.15.27",
     "aws-cdk": "2.1016.1",
     "ts-node": "^10.9.2",
     "typescript": "~5.8.3"
