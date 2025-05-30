@@ -4,8 +4,6 @@ import { Construct } from 'constructs';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AccessLogFormat, CfnAccount, DomainName, EndpointType, LambdaIntegration, LogGroupLogDestination, MethodLoggingLevel, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
-import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
-import { ApiGatewayDomain } from 'aws-cdk-lib/aws-route53-targets';
 import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
@@ -71,10 +69,6 @@ export class TorpinStack extends Stack {
       cloudWatchRoleArn: apiGatewayCloudWatchRole.roleArn,  // Use the created role's ARN
     });
 
-    // Create a new Hosted Zone for the domain
-    const hostedZone = new HostedZone(this, 'HostedZone', {
-      zoneName: 'isbriantorp.in',  // Replace with your domain name
-    });
 
     // Create CloudWatch Log Group
     const logGroup = new LogGroup(this, 'ApiGatewayAccessLogs', {
@@ -114,10 +108,11 @@ export class TorpinStack extends Stack {
     const lambdaIntegration = new LambdaIntegration(myLambda);
     apiResource.addMethod('GET', lambdaIntegration);
 
-   // Request or Import SSL Certificate for your custom domain
+   // Request or Import SSL Certificate for your custom domain. DNS validation
+    // must be completed manually in Porkbun since Route53 is not used.
     const certificate = new Certificate(this, 'Certificate', {
-      domainName: 'api.isbriantorp.in',  // Replace with your subdomain
-      validation: CertificateValidation.fromDns(hostedZone),  // DNS validation with the hosted zone
+      domainName: 'api.isbriantorp.in',
+      validation: CertificateValidation.fromDns(),
     });
 
     // Create a custom domain for API Gateway
@@ -130,11 +125,5 @@ export class TorpinStack extends Stack {
     // Map custom domain to the API Gateway stage
     customDomain.addBasePathMapping(api, { basePath: '' });
 
-    // Create an A Record in Route 53 for the custom domain
-    new ARecord(this, 'ApiARecord', {
-      zone: hostedZone,
-      target: RecordTarget.fromAlias(new ApiGatewayDomain(customDomain)),
-      recordName: 'api',
-    });
   }
 }
