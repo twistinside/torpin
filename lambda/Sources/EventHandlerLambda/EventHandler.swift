@@ -13,6 +13,7 @@ struct EventHandlerLambda: LambdaHandler {
 
     let steamClient: SteamClient
     let recordTable: RecordTable
+    let sessionManager: SessionManager
     
     init(context: LambdaInitializationContext) async throws {
         LogManager.initialize(from: context)
@@ -21,13 +22,26 @@ struct EventHandlerLambda: LambdaHandler {
         config.region = self.region
         let client = DynamoDBClient(config: config)
         self.recordTable = RecordTable(client: client)
+        self.sessionManager = SessionManager(client: client)
     }
     
     func handle(_ event: In, context: LambdaContext) async throws -> Out {
         LogManager.shared.info("Event triggered")
-        let torpin = try await steamClient.isBrianTorpin()
+        async let torpin = steamClient.isBrianTorpin()
+        async let activeSession = sessionManager.hasActiveSession()
+        let (torpin, hasActive) = try await (torpin, activeSession)
         let torpinRecord = TorpinRecord(date: Date(), torpin: torpin)
         _ = try await recordTable.add(torpinRecord)
+
+        switch (torpin, hasActive) {
+        case (true, false):
+            try await sessionManager.createSession(at: torpinRecord.date)
+        case (false, true):
+            try await sessionManager.closeActiveSession(at: torpinRecord.date)
+        default:
+            break
+        }
+
         LogManager.shared.info("Brian is torpin: \(torpin)")
     }
 }
