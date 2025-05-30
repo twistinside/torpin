@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  swift-build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -14,6 +14,12 @@ jobs:
       - name: Build Swift Lambda
         working-directory: ./lambda
         run: swift build
+
+  cdk-synth:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -38,3 +44,22 @@ jobs:
       - name: Synthesize CDK
         working-directory: ./cdk
         run: npx cdk synth
+
+  astro-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install web Dependencies
+        working-directory: ./astro
+        run: npm install
+
+      - name: Build web site
+        working-directory: ./astro
+        run: npm run build
