@@ -11,12 +11,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build Swift Lambda
+      - name: Package Swift Lambda
+        if: steps.lambda-cache.outputs.cache-hit != 'true'
         working-directory: ./lambda
-        run: |
-          export C_INCLUDE_PATH=
-          export CPATH=
-          swift build -Xcc -isystem -Xcc /nonexistent
+        run: swift package archive --disable-sandbox plugin
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
