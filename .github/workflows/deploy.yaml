@@ -90,4 +90,3 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./astro/dist/
           dangerous-clean-slate: true
-          dry-run: true
