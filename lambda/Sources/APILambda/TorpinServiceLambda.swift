@@ -26,7 +26,7 @@ struct TorpinServiceLambda: LambdaHandler {
         let result = TorpinResult(isBrianTorpin: isBrianTorpin)
         let bodyData = try JSONEncoder().encode(result)
         let body = String(decoding: bodyData, as: UTF8.self)
-        return APIGatewayResponse(
+        let response = APIGatewayResponse(
             statusCode: HTTPResponse.Status(200),
             headers: [
                 "Access-Control-Allow-Origin": "*",
@@ -34,5 +34,7 @@ struct TorpinServiceLambda: LambdaHandler {
             ],
             body: body
         )
+        LogManager.shared.info("Response: \(response)")
+        return response;
     }
 }
