@@ -1,7 +1,7 @@
 import { join } from 'path';
 import { Duration, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Alias, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AccessLogFormat, CfnAccount, DomainName, EndpointType, LambdaIntegration, LogGroupLogDestination, MethodLoggingLevel, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
@@ -24,12 +24,24 @@ export class TorpinStack extends Stack {
 
     const myLambda = new Function(this, 'TorpinApi', {
       runtime: Runtime.PROVIDED_AL2,
-      code: Code.fromAsset(join(__dirname, '../../lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/TorpinServiceLambda/TorpinServiceLambda.zip')),
+      code: Code.fromAsset(
+        join(
+          __dirname,
+          '../../lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/TorpinServiceLambda/TorpinServiceLambda.zip'
+        )
+      ),
       handler: 'main',
       environment: {
-          STEAM_API_KEY: process.env.STEAM_API_KEY || '',
-          STEAM_ID: process.env.STEAM_ID || '',
+        STEAM_API_KEY: process.env.STEAM_API_KEY || '',
+        STEAM_ID: process.env.STEAM_ID || '',
       },
+      reservedConcurrentExecutions: 1,
+    });
+
+    const lambdaAlias = new Alias(this, 'TorpinApiAlias', {
+      aliasName: 'live',
+      version: myLambda.currentVersion,
+      provisionedConcurrentExecutions: 1,
     });
 
     table.grantReadData(myLambda);
@@ -105,7 +117,7 @@ export class TorpinStack extends Stack {
     const apiResource = api.root.addResource('v1');
 
     // Integrating Lambda with API Gateway
-    const lambdaIntegration = new LambdaIntegration(myLambda);
+    const lambdaIntegration = new LambdaIntegration(lambdaAlias);
     apiResource.addMethod('GET', lambdaIntegration);
 
    // Request or Import SSL Certificate for your custom domain. DNS validation
