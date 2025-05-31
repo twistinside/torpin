@@ -22,7 +22,7 @@ export class TorpinStack extends Stack {
       billingMode:  BillingMode.PAY_PER_REQUEST,
     });
 
-    const myLambda = new Function(this, 'TorpinApi', {
+    const apiLambda = new Function(this, 'TorpinApi', {
       runtime: Runtime.PROVIDED_AL2,
       code: Code.fromAsset(
         join(
@@ -38,20 +38,22 @@ export class TorpinStack extends Stack {
       reservedConcurrentExecutions: 1,
     });
 
-    const lambdaAlias = new Alias(this, 'TorpinApiAlias', {
+    const alias = new Alias(this, 'TorpinApiAlias', {
       aliasName: 'live',
-      version: myLambda.currentVersion,
+      version: apiLambda.currentVersion,
       provisionedConcurrentExecutions: 1,
     });
 
-    table.grantReadData(myLambda);
+    table.grantReadData(apiLambda);
 
     const eventHandler = new Function(this, 'EventHandlerLambda', {
       runtime: Runtime.PROVIDED_AL2,
-      code: Code.fromAsset(join(
-        __dirname,
-        '../../lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/EventHandlerLambda/EventHandlerLambda.zip'
-      )),
+      code: Code.fromAsset(
+        join(
+          __dirname,
+          '../../lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/EventHandlerLambda/EventHandlerLambda.zip'
+        )
+      ),
       handler: 'main',
       environment: {
         STEAM_API_KEY: process.env.STEAM_API_KEY || '',
@@ -66,28 +68,23 @@ export class TorpinStack extends Stack {
 
     table.grantReadWriteData(eventHandler);
 
-    // Create an IAM Role for API Gateway to push logs to CloudWatch
     const apiGatewayCloudWatchRole = new Role(this, 'ApiGatewayCloudWatchRole', {
       assumedBy: new ServicePrincipal('apigateway.amazonaws.com'),  // API Gateway Service Principal
     });
 
-    // Attach the AmazonAPIGatewayPushToCloudWatchLogs policy to the role
     apiGatewayCloudWatchRole.addManagedPolicy(
       ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonAPIGatewayPushToCloudWatchLogs')
     );
 
-    // Set the CloudWatch log role ARN in API Gateway's Account Settings
     new CfnAccount(this, 'ApiGatewayAccount', {
       cloudWatchRoleArn: apiGatewayCloudWatchRole.roleArn,  // Use the created role's ARN
     });
 
 
-    // Create CloudWatch Log Group
     const logGroup = new LogGroup(this, 'ApiGatewayAccessLogs', {
       retention: RetentionDays.ONE_WEEK,  // Set retention as needed
     });
 
-    // Create API Gateway
     const api = new RestApi(this, 'ToprinApiGateway', {
       restApiName: 'Is Brian Torpin Status Service',
       description: 'This service checks if Brian is playing World of Warships.',
@@ -113,29 +110,22 @@ export class TorpinStack extends Stack {
       },
     });
 
-    // Add resources to the API
     const apiResource = api.root.addResource('v1');
 
-    // Integrating Lambda with API Gateway
-    const lambdaIntegration = new LambdaIntegration(lambdaAlias);
+    const lambdaIntegration = new LambdaIntegration(alias);
     apiResource.addMethod('GET', lambdaIntegration);
 
-   // Request or Import SSL Certificate for your custom domain. DNS validation
-    // must be completed manually in Porkbun since Route53 is not used.
     const certificate = new Certificate(this, 'Certificate', {
       domainName: 'api.isbriantorp.in',
       validation: CertificateValidation.fromDns(),
     });
 
-    // Create a custom domain for API Gateway
     const customDomain = new DomainName(this, 'CustomDomain', {
       domainName: 'api.isbriantorp.in', 
       certificate: certificate,
       endpointType: EndpointType.REGIONAL,  // Ensure it's Regional
     });
 
-    // Map custom domain to the API Gateway stage
     customDomain.addBasePathMapping(api, { basePath: '' });
-
   }
 }
