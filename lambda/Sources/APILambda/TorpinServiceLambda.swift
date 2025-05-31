@@ -28,7 +28,10 @@ struct TorpinServiceLambda: LambdaHandler {
         let body = String(decoding: bodyData, as: UTF8.self)
         return APIGatewayResponse(
             statusCode: HTTPResponse.Status(200),
-            headers: ["Content-Type": "application/json"],
+            headers: [
+                "Access-Control-Allow-Origin": "*",
+                "Content-Type": "application/json"
+            ],
             body: body
         )
     }
