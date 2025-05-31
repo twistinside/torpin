@@ -4,11 +4,8 @@ import Common
 import Foundation
 import HTTPTypes
 
-struct TorpinResult: Codable, CustomStringConvertible {
+struct TorpinResult: Codable {
     let isBrianTorpin: Bool
-    var description: String {
-        return "{\"isBrianTorpin\": \(isBrianTorpin)}"
-    }
 }
 
 @main
@@ -27,9 +24,12 @@ struct TorpinServiceLambda: LambdaHandler {
         LogManager.shared.info("Event received: \(event)")
         let isBrianTorpin = try await steamClient.isBrianTorpin()
         let result = TorpinResult(isBrianTorpin: isBrianTorpin)
+        let bodyData = try JSONEncoder().encode(result)
+        let body = String(decoding: bodyData, as: UTF8.self)
         return APIGatewayResponse(
             statusCode: HTTPResponse.Status(200),
-            body: "\(result)"
+            headers: ["Content-Type": "application/json"],
+            body: body
         )
     }
 }

@@ -43,6 +43,11 @@ let package = Package(
                 .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime")
             ],
             path: "Sources/Common"
+        ),
+        .testTarget(
+            name: "APILambdaTests",
+            dependencies: ["TorpinServiceLambda"],
+            path: "Tests/APILambda"
         )
     ]
 )
