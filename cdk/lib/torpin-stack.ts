@@ -58,6 +58,7 @@ export class TorpinStack extends Stack {
       environment: {
         STEAM_API_KEY: process.env.STEAM_API_KEY || '',
         STEAM_ID: process.env.STEAM_ID || '',
+        TORPIN_API_URL: 'https://api.isbriantorp.in/v1',
       },
     });
 
