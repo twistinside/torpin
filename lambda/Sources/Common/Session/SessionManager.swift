@@ -47,14 +47,16 @@ public actor SessionManager {
     private func getActiveSession() async throws -> SessionRecord? {
         LogManager.shared.info("Getting active session")
         let values: [String:DynamoDBClientTypes.AttributeValue] = [
-            ":record": .s(RecordType.sessionRecord.rawValue)
+            ":recordType": .s(RecordType.sessionRecord.rawValue)
         ]
         let input = QueryInput(
             expressionAttributeValues: values,
-            keyConditionExpression: "recordType = :record",
+            keyConditionExpression: "recordType = :recordType",
             tableName: tableName
         )
+        LogManager.shared.info("Using input: \(input)")
         let output = try await client.query(input: input)
+        LogManager.shared.info("Received output: \(output)")
         let items = output.items ?? []
         for item in items {
             if item["endDate"] == nil {

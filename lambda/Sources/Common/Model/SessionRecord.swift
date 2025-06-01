@@ -14,7 +14,7 @@ public struct SessionRecord: Codable {
 
     init(withItem item: [String:DynamoDBClientTypes.AttributeValue]) throws  {
         let iso = ISO8601DateFormatter()
-        guard let startDateAttribute = item["startDate"],
+        guard let startDateAttribute = item["date"],
               let recordTypeAttribute = item["recordType"] else {
             throw RecordError.ItemNotFound
         }
@@ -44,7 +44,7 @@ public struct SessionRecord: Codable {
     func getAsItem() async throws -> [Swift.String:DynamoDBClientTypes.AttributeValue]  {
         let iso = ISO8601DateFormatter()
         var item: [Swift.String:DynamoDBClientTypes.AttributeValue] = [
-            "startDate": .s(iso.string(from: startDate)),
+            "date": .s(iso.string(from: startDate)),
             "recordType": .s(self.recordType.rawValue),
         ]
         if let endDate {
