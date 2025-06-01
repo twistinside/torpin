@@ -29,7 +29,7 @@ public actor SessionManager {
         let iso = ISO8601DateFormatter()
         let key: [String:DynamoDBClientTypes.AttributeValue] = [
             "recordType": .s(RecordType.sessionRecord.rawValue),
-            "startDate": .s(iso.string(from: session.startDate))
+            "date": .s(iso.string(from: session.startDate))
         ]
         let values: [String:DynamoDBClientTypes.AttributeValue] = [
             ":endDate": .s(iso.string(from: date))
