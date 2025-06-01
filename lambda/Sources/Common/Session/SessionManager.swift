@@ -14,9 +14,12 @@ public actor SessionManager {
     }
 
     public func createSession(at date: Date) async throws {
+        LogManager.shared.info("Creating session")
         let record = SessionRecord(startDate: date)
         let item = try await record.getAsItem()
+        LogManager.shared.info("Using item: \(item)")
         let input = PutItemInput(item: item, tableName: tableName)
+        LogManager.shared.info("Using input: \(input)")
         _ = try await client.putItem(input: input)
         LogManager.shared.info("Created session starting at \(date)")
     }
@@ -42,6 +45,7 @@ public actor SessionManager {
     }
 
     private func getActiveSession() async throws -> SessionRecord? {
+        LogManager.shared.info("Getting active session")
         let values: [String:DynamoDBClientTypes.AttributeValue] = [
             ":record": .s(RecordType.sessionRecord.rawValue)
         ]
