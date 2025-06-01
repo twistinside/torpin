@@ -4,24 +4,29 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout>
   <main style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;">
-  <img id="torpin-image" src="images/not-torpin.png" alt="Torpin status" style="max-width: 300px; width: 100%;" />
+  <img
+    id="torpin-image"
+    alt="Torpin status"
+    style="max-width: 300px; width: 100%; display: none;"
+  />
   </main>
 
   <script>
   document.addEventListener('DOMContentLoaded', async () => {
-    try {
-    const res = await fetch('https://api.isbriantorp.in/v1/');
-    const data = await res.json();
-
     const image = document.getElementById('torpin-image') as HTMLImageElement;
+    try {
+      const res = await fetch('https://api.isbriantorp.in/v1/');
+      const data = await res.json();
 
-    if (data.isBrianTorpin) {
-      image.src = 'images/torpin.png';
-    } else {
-      image.src = 'images/not-torpin.png';
-    }
+      if (data.isBrianTorpin) {
+        image.src = 'images/torpin.png';
+      } else {
+        image.src = 'images/not-torpin.png';
+      }
     } catch (err) {
-    console.error('Error fetching torpin status:', err);
+      console.error('Error fetching torpin status:', err);
+    } finally {
+      image.style.display = 'block';
     }
   });
   </script>
