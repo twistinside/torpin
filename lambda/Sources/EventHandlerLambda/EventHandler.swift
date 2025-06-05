@@ -1,4 +1,4 @@
-import AWSDynamoDB
+@preconcurrency import AWSDynamoDB
 import AWSLambdaEvents
 import AWSLambdaRuntime
 import AsyncHTTPClient
@@ -13,6 +13,8 @@ struct EventHandlerLambda: LambdaHandler {
     let recordTable: RecordTable
     let region = "us-west-1"
     let steamClient: SteamClient
+    let recordTable: RecordTable
+    let sessionManager: SessionManager
     
     init(context: LambdaInitializationContext) async throws {
         LogManager.initialize(from: context)
@@ -21,13 +23,30 @@ struct EventHandlerLambda: LambdaHandler {
         config.region = self.region
         let client = DynamoDBClient(config: config)
         self.recordTable = RecordTable(client: client)
+        self.sessionManager = SessionManager(client: client)
     }
-    
+
     func handle(_ event: In, context: LambdaContext) async throws -> Out {
         LogManager.shared.info("Event triggered")
-        let torpin = try await steamClient.isBrianTorpin()
-        let torpinRecord = TorpinRecord(date: Date(), torpin: torpin)
+
+        let date = Date()
+
+        async let torpin = steamClient.isBrianTorpin()
+        async let active = sessionManager.hasActiveSession()
+        let (isTorpin, hasActive) = try await (torpin, active)
+
+        switch (isTorpin, hasActive) {
+        case (true, false):
+            try await sessionManager.createSession(at: date)
+        case (false, true):
+            try await sessionManager.closeActiveSession(at: date)
+        default:
+            break
+        }
+
+        let torpinRecord = TorpinRecord(date: date, torpin: isTorpin)
         _ = try await recordTable.add(torpinRecord)
+      
         LogManager.shared.info("Brian is torpin: \(torpin)")
         await Self.warmAPI()
     }
@@ -49,3 +68,5 @@ struct EventHandlerLambda: LambdaHandler {
         }
     }
 }
+
+extension EventHandlerLambda: @unchecked Sendable {}
