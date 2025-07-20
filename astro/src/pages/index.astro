@@ -3,31 +3,128 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout>
-  <main style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;">
-  <img
-    id="torpin-image"
-    alt="Torpin status"
-    style="max-width: 300px; width: 100%; display: none;"
-  />
-  </main>
-
-  <script>
-  document.addEventListener('DOMContentLoaded', async () => {
-    const image = document.getElementById('torpin-image') as HTMLImageElement;
-    try {
-      const res = await fetch('https://api.isbriantorp.in/v1/');
-      const data = await res.json();
-
-      if (data.isBrianTorpin) {
-        image.src = 'images/torpin.png';
-      } else {
-        image.src = 'images/not-torpin.png';
-      }
-    } catch (err) {
-      console.error('Error fetching torpin status:', err);
-    } finally {
-      image.style.display = 'block';
+  <style>
+    body {
+      margin: 0;
+      background-color: #e8faff;
+      overflow: hidden;
     }
-  });
+
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(2em, 1fr));
+      grid-auto-rows: 2em;
+      font-size: 2rem;
+      justify-items: center;
+      align-items: center;
+      width: 100%;
+      height: 100vh;
+    }
+
+    .emoji-grid span {
+      user-select: none;
+      display: inline-block;
+    }
+  </style>
+
+  <main class="emoji-grid" id="emoji-grid"></main>
+
+  <script client:load>
+    function initEmojiExplosions() {
+      const grid = document.getElementById('emoji-grid');
+      if (!grid) {
+        setTimeout(initEmojiExplosions, 100);
+        return;
+      }
+
+      const total = 400;
+      
+      // Create a temp span to measure actual column count
+      const test = document.createElement('span');
+      test.style.gridColumn = '1';
+      test.style.gridRow = '1';
+      test.style.visibility = 'hidden';
+      test.textContent = '🌊';
+      grid.appendChild(test);
+      
+      setTimeout(() => {
+        const computed = getComputedStyle(grid);
+        const colCount = Math.floor(grid.clientWidth / parseFloat(computed.fontSize) / 2);
+        grid.removeChild(test);
+        
+        for (let i = 0; i < total; i++) {
+          const row = Math.floor(i / colCount);
+          const col = i % colCount;
+          const offset = row % 2;
+          const visible = (col - offset) % 2 === 0;
+          
+          const span = document.createElement('span');
+          span.textContent = visible ? '🌊' : '';
+          grid.appendChild(span);
+        }
+        
+        checkStatus();
+      }, 100);
+    }
+    
+    function checkStatus() {
+      fetch('https://api.isbriantorp.in/v1/')
+        .then(res => res.json())
+        .then(data => {
+          if (!data.isBrianTorpin) {
+            startExplosions();
+          }
+        })
+        .catch(err => {
+          console.error("Error: ", err)
+        });
+    }
+    
+    function startExplosions() {
+      const spans = document.querySelectorAll('.emoji-grid span');
+      animateExplosions(spans);
+    }
+    
+    function animateExplosions(spans) {
+      function spawnExplosion() {
+        const emptySpans = [...spans].filter(s => s.textContent === '');
+        if (emptySpans.length === 0) {
+          setTimeout(spawnExplosion, 500);
+          return;
+        }
+        
+        const target = emptySpans[Math.floor(Math.random() * emptySpans.length)];
+        
+        target.textContent = '💥';
+        target.style.transition = 'all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+        target.style.transform = 'scale(0.1)';
+        target.style.opacity = '0';
+        target.offsetHeight;
+        
+        setTimeout(() => {
+          target.style.transform = 'scale(1.3)';
+          target.style.opacity = '1';
+        }, 10);
+        
+        setTimeout(() => {
+          target.style.transition = 'all 0.4s ease-out';
+          target.style.transform = 'scale(0.3)';
+          target.style.opacity = '0';
+        }, 400);
+        
+        setTimeout(() => {
+          target.textContent = '';
+          target.style.transform = '';
+          target.style.opacity = '';
+          target.style.transition = '';
+        }, 800);
+        
+        setTimeout(spawnExplosion, 600 + Math.random() * 400);
+      }
+      
+      spawnExplosion();
+    }
+    
+    initEmojiExplosions();
   </script>
 </Layout>
