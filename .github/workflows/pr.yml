@@ -12,7 +12,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Package Swift Lambda
-        if: steps.lambda-cache.outputs.cache-hit != 'true'
         working-directory: ./lambda
         run: swift package archive --disable-sandbox plugin
 
@@ -20,14 +19,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-
-      - name: Cache CDK node_modules
-        uses: actions/cache@v4
-        with:
-          path: ./cdk/node_modules
-          key: cdk-node-modules-${{ runner.os }}-${{ hashFiles('cdk/package-lock.json') }}
-          restore-keys: |
-            cdk-node-modules-${{ runner.os }}-
 
       - name: Install CDK Dependencies
         working-directory: ./cdk
