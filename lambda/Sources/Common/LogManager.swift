@@ -10,7 +10,7 @@ public actor LogManager {
         }
         return logger
     }
-    
+
     public static func initialize(from context: LambdaInitializationContext) {
         _shared = context.logger
         self.shared.info("Initialized logger.")

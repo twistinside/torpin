@@ -14,7 +14,7 @@ struct EventHandlerLambda: LambdaHandler {
     let steamClient: SteamClient
     let recordTable: RecordTable
     let sessionManager: SessionManager
-    
+
     init(context: LambdaInitializationContext) async throws {
         LogManager.initialize(from: context)
         self.steamClient = SteamClient()
