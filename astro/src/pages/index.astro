@@ -71,7 +71,7 @@ import Layout from '../layouts/Layout.astro';
       fetch('https://api.isbriantorp.in/v1/')
         .then(res => res.json())
         .then(data => {
-          if (!data.isBrianTorpin) {
+          if (data.isBrianTorpin) {
             startExplosions();
           }
         })
