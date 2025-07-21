@@ -31,7 +31,7 @@ public struct TorpinRecord: Codable {
         } else {
             throw RecordError.InvalidAttributes
         }
-        
+
         if case .bool(let torpin) = torpinAttribute {
             self.torpin = torpin
         } else {
