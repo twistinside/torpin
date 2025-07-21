@@ -1,6 +1,6 @@
 # Torpin'
 
-[![Deploy Website](https://github.com/twistinside/torpin/actions/workflows/deploy-website.yaml/badge.svg)](https://github.com/twistinside/torpin/actions/workflows/deploy-website.yaml)
+[![Deploy Torpin Service Lambda](https://github.com/twistinside/torpin/actions/workflows/deploy-backend.yaml/badge.svg)](https://github.com/twistinside/torpin/actions/workflows/deploy-backend.yaml) [![Deploy Website](https://github.com/twistinside/torpin/actions/workflows/deploy-website.yaml/badge.svg)](https://github.com/twistinside/torpin/actions/workflows/deploy-website.yaml)
 
 This project was launched as a learning opportunity, primarily for Swift Lambdas, but also for creating and deploying a full stack project with as much automation as possible. I am very happy with the outcome... This project is as fully CI/CD as I could manage (a note on the single challenge is below), and I have learned a lot about managing multiple parts of the stack in a single package.
 
