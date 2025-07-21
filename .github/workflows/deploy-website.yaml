@@ -1,0 +1,30 @@
+name: Deploy Website
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'astro/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Install web Dependencies
+        working-directory: ./astro
+        run: npm install
+
+      - name: Build web site
+        working-directory: ./astro
+        run: npm run build
+
+      - name: Upload to Porkbun
+        if: steps.web-cache.outputs.cache-hit != 'true'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: pixie-ftp.porkbun.com
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./astro/dist/
+          dangerous-clean-slate: true

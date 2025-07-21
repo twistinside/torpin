@@ -1,9 +1,12 @@
-name: Torpin Service Lambda
+name: Deploy Torpin Service Lambda
 
 on:
   push:
     branches:
       - 'main'
+    paths:
+    - 'lambda/**'
+    - 'cdk/**'
 
 jobs:
   deploy:
@@ -63,21 +66,3 @@ jobs:
           STEAM_ID: ${{ secrets.STEAM_ID }}
         working-directory: ./cdk
         run: npx cdk deploy --require-approval never
-
-      - name: Install web Dependencies
-        working-directory: ./astro
-        run: npm install
-
-      - name: Build web site
-        working-directory: ./astro
-        run: npm run build
-
-      - name: Upload to Porkbun
-        if: steps.web-cache.outputs.cache-hit != 'true'
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server: pixie-ftp.porkbun.com
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./astro/dist/
-          dangerous-clean-slate: true
