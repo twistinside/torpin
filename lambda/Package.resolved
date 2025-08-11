@@ -105,8 +105,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swift-server/swift-aws-lambda-events.git",
       "state" : {
-        "revision" : "0025b1a409aa4d3fe9900aff1339ac403343ccd5",
-        "version" : "1.0.0"
+        "revision" : "5aa3a6305864a2060b69f30cf3e24f4a2b5b16ba",
+        "version" : "1.2.1"
       }
     },
     {
