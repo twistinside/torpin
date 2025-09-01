@@ -1,0 +1,16 @@
+name: Build Lambda on PRs
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'lambda/**'
+
+jobs:
+  build-lambda:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package Swift Lambda
+        working-directory: ./lambda
+        run: swift package archive --disable-sandbox plugin
