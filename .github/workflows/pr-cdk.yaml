@@ -11,14 +11,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+
       - name: Install CDK dependencies
         working-directory: ./cdk
         run: npm install
+
       - name: Install CDK globally
         run: npm install -g aws-cdk
+
       - name: Synthesize CDK
         working-directory: ./cdk
         run: npx cdk synth
