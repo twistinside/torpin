@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Package Swift Lambda
         working-directory: ./lambda
         run: swift package archive --disable-sandbox plugin
