@@ -24,6 +24,15 @@ jobs:
       - name: Install CDK globally
         run: npm install -g aws-cdk
 
+      - name: Create placeholder lambda artifacts
+        run: |
+          mkdir -p lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/TorpinServiceLambda
+          mkdir -p lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/EventHandlerLambda
+          echo 'placeholder' > lambda/placeholder.txt
+          zip -qj lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/TorpinServiceLambda/TorpinServiceLambda.zip lambda/placeholder.txt
+          zip -qj lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/EventHandlerLambda/EventHandlerLambda.zip lambda/placeholder.txt
+          rm lambda/placeholder.txt
+
       - name: Synthesize CDK
         working-directory: ./cdk
         run: npx cdk synth
