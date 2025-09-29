@@ -16,7 +16,7 @@ let package = Package(
         .package(url: "https://github.com/awslabs/aws-sdk-swift", from: "1.3.18"),
         .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.25.2"),
         .package(url: "https://github.com/swift-server/swift-aws-lambda-events.git", from: "1.0.0"),
-        .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", from: "1.0.0-alpha.3")
+        .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", from: "2.0.0")
     ],
     targets: [
         .executableTarget(
