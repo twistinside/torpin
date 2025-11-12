@@ -2,7 +2,7 @@ import AWSLambdaRuntime
 import Logging
 
 public actor LogManager {
-    private static var _shared: Logger?
+    nonisolated(unsafe) private static var _shared: Logger?
 
     public static var shared: Logger {
         guard let logger = _shared else {
