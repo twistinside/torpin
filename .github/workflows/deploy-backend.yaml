@@ -1,6 +1,7 @@
 name: Deploy Torpin Service Lambda
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - 'main'
