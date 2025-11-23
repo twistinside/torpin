@@ -1,7 +1,7 @@
 import { join } from 'path';
-import { Duration, Stack, StackProps } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Architecture, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AccessLogFormat, CfnAccount, DomainName, EndpointType, LambdaIntegration, LogGroupLogDestination, MethodLoggingLevel, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
@@ -20,10 +20,15 @@ export class TorpinStack extends Stack {
       partitionKey: { name: 'recordType', type: AttributeType.STRING },
       sortKey:      { name: 'date', type: AttributeType.STRING },
       billingMode:  BillingMode.PAY_PER_REQUEST,
+      removalPolicy: RemovalPolicy.RETAIN,
     });
 
     const apiLambda = new Function(this, 'TorpinApi', {
       runtime: Runtime.PROVIDED_AL2,
+      architecture: Architecture.ARM_64,
+      memorySize: 512,
+      timeout: Duration.seconds(10),
+      description: 'API lambda for Torpin status',
       code: Code.fromAsset(
         join(
           __dirname,
@@ -41,6 +46,10 @@ export class TorpinStack extends Stack {
 
     const eventHandler = new Function(this, 'EventHandlerLambda', {
       runtime: Runtime.PROVIDED_AL2,
+      architecture: Architecture.ARM_64,
+      memorySize: 512,
+      timeout: Duration.seconds(10),
+      description: 'Event-driven updater for Torpin sessions',
       code: Code.fromAsset(
         join(
           __dirname,
@@ -99,7 +108,7 @@ export class TorpinStack extends Stack {
           user: true,
         }),
         loggingLevel: MethodLoggingLevel.INFO,  // Set logging level
-        dataTraceEnabled: true,  // Log request and response data
+        dataTraceEnabled: false,
       },
     });
 
