@@ -23,6 +23,16 @@ This project consists of three submodules:
 
 The backend consists of two lambdas, one triggered by API Gateway and one triggered by EventBridge events, and they are backed by a DynamoDB database.
 
+## Measuring API latency and cold start
+
+Use `python3 scripts/measure_lambda_latency.py` to benchmark the Swift Lambda endpoint before swapping it for JS. The script defaults to `https://api.isbriantorp.in/v1/` (override with `--url` or `TORPIN_API_URL`) and prints per-request latency plus summary stats. Example cold start and warm run:
+
+```
+python3 scripts/measure_lambda_latency.py --cold-start-waits 900 900 --warm-requests 10 --idle-between 1 --output-json lambda-metrics.json
+```
+
+Cold start waits are in seconds; use large values (e.g., 900s) to give Lambda time to freeze before sampling again. Warm runs happen after the cold probes and can be spaced out with `--idle-between`.
+
 ### Getting Torpin' Status
 The EventBridge trigger fires every minute, triggering a lambda that calls the Steam API to determine if my friend is playing World of Warships. The torpin' status is then stored in DynamoDB as a `Session`. Each `Session` consists of a start and end time. Every `Session` has a start time, and a `Session` is considered active if there is no end time.
 
