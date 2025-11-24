@@ -1,7 +1,7 @@
 import { join } from 'path';
 import { Duration, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Alias, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AccessLogFormat, CfnAccount, DomainName, EndpointType, LambdaIntegration, LogGroupLogDestination, MethodLoggingLevel, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
 import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
@@ -35,13 +35,6 @@ export class TorpinStack extends Stack {
         STEAM_API_KEY: process.env.STEAM_API_KEY || '',
         STEAM_ID: process.env.STEAM_ID || '',
       },
-      reservedConcurrentExecutions: 1,
-    });
-
-    const alias = new Alias(this, 'TorpinApiAlias', {
-      aliasName: 'live',
-      version: apiLambda.currentVersion,
-      provisionedConcurrentExecutions: 1,
     });
 
     table.grantReadData(apiLambda);
@@ -112,7 +105,7 @@ export class TorpinStack extends Stack {
 
     const apiResource = api.root.addResource('v1');
 
-    const lambdaIntegration = new LambdaIntegration(alias);
+    const lambdaIntegration = new LambdaIntegration(apiLambda);
     apiResource.addMethod('GET', lambdaIntegration);
 
     const certificate = new Certificate(this, 'Certificate', {
