@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/awslabs/aws-sdk-swift",
       "state" : {
-        "revision" : "1cd98d3e309180dad83598eb4d71cca921c6ee4a",
-        "version" : "1.6.40"
+        "revision" : "4c3e4ae40492b2560740df79ea0ddc306c52dffd",
+        "version" : "1.6.45"
       }
     },
     {
