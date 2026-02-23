@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/awslabs/aws-crt-swift",
       "state" : {
-        "revision" : "357e5e6eca4daba5d90d2d9da844b526845072b4",
-        "version" : "0.56.1"
+        "revision" : "af3605cccac8c9d0ad1625e55cc96123eacf8006",
+        "version" : "0.58.0"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/awslabs/aws-sdk-swift",
       "state" : {
-        "revision" : "4c3e4ae40492b2560740df79ea0ddc306c52dffd",
-        "version" : "1.6.45"
+        "revision" : "3cca19b3dc279d49aff68e10aaa54413ec4cbaee",
+        "version" : "1.6.60"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/smithy-lang/smithy-swift",
       "state" : {
-        "revision" : "7a9a699319f7d86ea559bd4e215458ac0b3eee6d",
-        "version" : "0.179.0"
+        "revision" : "e7cdb34797f9c98d405a579e68c47fd1749f6d5f",
+        "version" : "0.187.0"
       }
     },
     {
@@ -62,15 +62,6 @@
       "state" : {
         "revision" : "87e50f483c54e6efd60e885f7f5aa946cee68023",
         "version" : "1.2.1"
-      }
-    },
-    {
-      "identity" : "swift-argument-parser",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-argument-parser.git",
-      "state" : {
-        "revision" : "8f4d2753f0e4778c76d5f05ad16c74f707390531",
-        "version" : "1.2.3"
       }
     },
     {
