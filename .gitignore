@@ -1,0 +1,6 @@
+.DS_Store
+api/.dist/
+api/node_modules/
+astro/node_modules/
+cdk/cdk.out/
+cdk/node_modules/
