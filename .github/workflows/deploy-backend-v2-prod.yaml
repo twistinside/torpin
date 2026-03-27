@@ -51,7 +51,7 @@ jobs:
       - name: Package Swift Lambda v2
         if: steps.lambda-v2-cache.outputs.cache-hit != 'true'
         working-directory: ./lambda-v2
-        run: swift package --disable-sandbox --allow-network-connections docker archive --disable-docker-image-update --products EventHandlerV2Lambda
+        run: DOCKER_DEFAULT_PLATFORM=linux/amd64 swift package --disable-sandbox --allow-network-connections docker archive --disable-docker-image-update --products EventHandlerV2Lambda
 
       - name: Create placeholder legacy Lambda artifacts
         run: |
