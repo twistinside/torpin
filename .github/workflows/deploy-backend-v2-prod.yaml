@@ -1,0 +1,139 @@
+name: Deploy Backend v2 Prod
+
+on:
+  workflow_dispatch:
+    inputs:
+      git_ref:
+        description: Git ref to deploy
+        required: true
+        default: main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.git_ref }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Cache Swift Lambda v2 archive
+        id: lambda-v2-cache
+        uses: actions/cache@v4
+        with:
+          path: lambda-v2/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/
+          key: swift-lambda-v2-zip-${{ runner.os }}-${{ hashFiles('lambda-v2/Package.resolved', 'lambda-v2/Sources/**', 'lambda-v2/Package.swift') }}
+          restore-keys: |
+            swift-lambda-v2-zip-${{ runner.os }}-
+
+      - name: Install API dependencies
+        working-directory: ./api
+        run: npm ci
+
+      - name: Test API Lambda
+        working-directory: ./api
+        run: npm test
+
+      - name: Package API Lambda
+        working-directory: ./api
+        run: npm run package
+
+      - name: Test Swift Lambda v2
+        working-directory: ./lambda-v2
+        run: swift test
+
+      - name: Package Swift Lambda v2
+        if: steps.lambda-v2-cache.outputs.cache-hit != 'true'
+        working-directory: ./lambda-v2
+        run: swift package --disable-sandbox --allow-network-connections docker archive --disable-docker-image-update --products EventHandlerV2Lambda
+
+      - name: Create placeholder legacy Lambda artifacts
+        run: |
+          mkdir -p lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/TorpinServiceLambda
+          mkdir -p lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/EventHandlerLambda
+          echo 'placeholder' > lambda/placeholder.txt
+          zip -qj lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/TorpinServiceLambda/TorpinServiceLambda.zip lambda/placeholder.txt
+          zip -qj lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/EventHandlerLambda/EventHandlerLambda.zip lambda/placeholder.txt
+          rm lambda/placeholder.txt
+
+      - name: Cache CDK node_modules
+        uses: actions/cache@v4
+        with:
+          path: cdk/node_modules
+          key: cdk-node-modules-${{ runner.os }}-${{ hashFiles('cdk/package-lock.json') }}
+          restore-keys: |
+            cdk-node-modules-${{ runner.os }}-
+
+      - name: Install CDK dependencies
+        working-directory: ./cdk
+        run: npm ci
+
+      - name: Install CDK globally
+        run: npm install -g aws-cdk
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-1
+
+      - name: Bootstrap CDK
+        working-directory: ./cdk
+        run: npx cdk bootstrap
+
+      - name: Deploy v2 prod stack
+        env:
+          STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
+          STEAM_ID: ${{ secrets.STEAM_ID }}
+        working-directory: ./cdk
+        run: npx cdk deploy TorpinV2ProdStack --require-approval never --outputs-file cdk-outputs.json
+
+      - name: Summarize v2 prod deployment
+        working-directory: ./cdk
+        run: |
+          node -e "const fs = require('fs'); const outputs = JSON.parse(fs.readFileSync('cdk-outputs.json', 'utf8')).TorpinV2ProdStack; fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## v2 Prod\n- API URL: ${outputs.ApiUrl}\n- Table: ${outputs.TableName}\n- API Lambda: ${outputs.ApiFunctionName}\n- Event Handler Lambda: ${outputs.EventHandlerFunctionName}\n`);"
+
+      - name: Smoke test v2 prod API
+        working-directory: ./cdk
+        run: |
+          PROD_URL=$(node -e "const fs = require('fs'); const outputs = JSON.parse(fs.readFileSync('cdk-outputs.json', 'utf8')).TorpinV2ProdStack; process.stdout.write(outputs.ApiUrl);")
+          RESPONSE=$(curl --fail --silent --show-error "$PROD_URL")
+          RESPONSE="$RESPONSE" node -e "const body = JSON.parse(process.env.RESPONSE); if (typeof body.isBrianTorpin !== 'boolean') process.exit(1); if (!Object.prototype.hasOwnProperty.call(body, 'recentlyTorpedAt')) process.exit(1); if (!Object.prototype.hasOwnProperty.call(body, 'torpedForInSeconds')) process.exit(1);"
+
+      - name: Notify via Pushover
+        if: ${{ always() && env.PUSHOVER_TOKEN != '' && env.PUSHOVER_USER != '' }}
+        env:
+          JOB_STATUS: ${{ job.status }}
+          PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
+          PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
+        working-directory: ./cdk
+        run: |
+          short_sha="$(git rev-parse --short=8 HEAD)"
+          api_url=""
+          if [ -f cdk-outputs.json ]; then
+            api_url=$(node -e "const fs = require('fs'); const outputs = JSON.parse(fs.readFileSync('cdk-outputs.json', 'utf8')).TorpinV2ProdStack; process.stdout.write(outputs?.ApiUrl ?? '')")
+          fi
+          if [ "${JOB_STATUS}" = "success" ]; then
+            title="Torpin v2 prod deployment"
+            if [ -n "${api_url}" ]; then
+              message="Deployment complete. ${api_url} is now at ${short_sha}."
+            else
+              message="Deployment complete. Prod is now at ${short_sha}."
+            fi
+          else
+            title="Torpin v2 prod deployment failed"
+            message="Deployment failed for ${short_sha}. Check logs."
+          fi
+          curl -s \
+            --form-string "token=${PUSHOVER_TOKEN}" \
+            --form-string "user=${PUSHOVER_USER}" \
+            --form-string "title=${title}" \
+            --form-string "message=${message}" \
+            https://api.pushover.net/1/messages.json
