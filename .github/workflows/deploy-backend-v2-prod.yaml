@@ -98,7 +98,19 @@ jobs:
       - name: Summarize v2 prod deployment
         working-directory: ./cdk
         run: |
-          node -e "const fs = require('fs'); const outputs = JSON.parse(fs.readFileSync('cdk-outputs.json', 'utf8')).TorpinV2ProdStack; fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## v2 Prod\n- API URL: ${outputs.ApiUrl}\n- Table: ${outputs.TableName}\n- API Lambda: ${outputs.ApiFunctionName}\n- Event Handler Lambda: ${outputs.EventHandlerFunctionName}\n`);"
+          node <<'NODE'
+          const fs = require('fs');
+          const outputs = JSON.parse(fs.readFileSync('cdk-outputs.json', 'utf8')).TorpinV2ProdStack;
+          const summary = [
+            '## v2 Prod',
+            `- API URL: ${outputs.ApiUrl}`,
+            `- Table: ${outputs.TableName}`,
+            `- API Lambda: ${outputs.ApiFunctionName}`,
+            `- Event Handler Lambda: ${outputs.EventHandlerFunctionName}`,
+            '',
+          ].join('\n');
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${summary}\n`);
+          NODE
 
       - name: Smoke test v2 prod API
         working-directory: ./cdk
@@ -108,13 +120,17 @@ jobs:
           RESPONSE="$RESPONSE" node -e "const body = JSON.parse(process.env.RESPONSE); if (typeof body.isBrianTorpin !== 'boolean') process.exit(1); if (!Object.prototype.hasOwnProperty.call(body, 'recentlyTorpedAt')) process.exit(1); if (!Object.prototype.hasOwnProperty.call(body, 'torpedForInSeconds')) process.exit(1);"
 
       - name: Notify via Pushover
-        if: ${{ always() && env.PUSHOVER_TOKEN != '' && env.PUSHOVER_USER != '' }}
+        if: ${{ always() }}
         env:
           JOB_STATUS: ${{ job.status }}
           PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
           PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
         working-directory: ./cdk
         run: |
+          if [ -z "${PUSHOVER_TOKEN}" ] || [ -z "${PUSHOVER_USER}" ]; then
+            echo "Pushover secrets are not configured; skipping notification."
+            exit 0
+          fi
           short_sha="$(git rev-parse --short=8 HEAD)"
           api_url=""
           if [ -f cdk-outputs.json ]; then
