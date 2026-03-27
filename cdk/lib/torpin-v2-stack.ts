@@ -49,7 +49,7 @@ export class TorpinV2Stack extends Stack {
 
     const eventHandler = new Function(this, 'EventHandlerLambda', {
       runtime: Runtime.PROVIDED_AL2,
-      architecture: Architecture.X86_64,
+      architecture: Architecture.ARM_64,
       memorySize: 512,
       timeout: Duration.seconds(10),
       description: `Event-driven updater for Torpin v2 sessions (${props.environmentName})`,
