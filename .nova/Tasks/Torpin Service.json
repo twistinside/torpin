@@ -2,12 +2,11 @@
   "actions" : {
 	"build" : {
 	  "enabled" : true,
-	  "script" : "cd lambda\nswift build\nsswift package archive --disable-sandbox plugin\ncd ..\cdk\nnpm run build\n"
+	  "script" : "set -euo pipefail\ncd lambda\nwhoami\nid\nif ! docker info >/dev/null 2>&1; then echo \"Docker daemon not running; start Docker Desktop or colima\" >&2; exit 1; fi\nif ! docker pull -q swift:amazonlinux2 >/dev/null 2>&1; then echo \"Cannot pull swift:amazonlinux2 (check Docker permissions/daemon)\" >&2; exit 1; fi\nswift build -c release\nswift package archive --product TorpinServiceLambda --allow-writing-to-directory .build -c release\nswift package archive --product EventHandlerLambda --allow-writing-to-directory .build -c release\ncd ../cdk\nnpm run build\n"
 	},
 	"clean" : {
 	  "enabled" : true,
-	  "script" : "cd lambda\nswift package clean\ncd ..\cdk\nnpm run clean"
+	  "script" : "cd lambda\nswift package clean\ncd ../cdk\nnpm run clean\n"
 	}
   }
 }
-

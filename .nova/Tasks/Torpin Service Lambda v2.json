@@ -1,0 +1,16 @@
+{
+  "actions" : {
+    "build" : {
+      "enabled" : true,
+      "script" : "cd lambda-v2\nswift build"
+    },
+    "clean" : {
+      "enabled" : true,
+      "script" : "cd lambda-v2\nswift package clean"
+    },
+    "run" : {
+      "enabled" : true,
+      "script" : "export LOCAL_LAMBDA_SERVER_ENABLED=true\ncd lambda-v2\nswift run EventHandlerV2Lambda"
+    }
+  }
+}
