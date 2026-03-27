@@ -1,0 +1,13 @@
+{
+  "name": "torpin-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "package": "rm -rf .dist && mkdir -p .dist && cp index.mjs package.json package-lock.json .dist/ && npm ci --omit=dev --prefix .dist",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.940.0",
+    "@aws-sdk/lib-dynamodb": "^3.940.0"
+  }
+}
