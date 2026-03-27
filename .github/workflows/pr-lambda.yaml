@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-lambda:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v5
 
@@ -37,7 +37,7 @@ jobs:
 
       - name: Package Swift Lambda
         working-directory: ./lambda
-        run: swift package --disable-sandbox --allow-network-connections docker archive --disable-docker-image-update
+        run: DOCKER_DEFAULT_PLATFORM=linux/arm64 swift package --disable-sandbox --allow-network-connections docker archive --disable-docker-image-update
 
       - name: Test Swift Lambda v2
         working-directory: ./lambda-v2
@@ -45,4 +45,4 @@ jobs:
 
       - name: Package Swift Lambda v2
         working-directory: ./lambda-v2
-        run: DOCKER_DEFAULT_PLATFORM=linux/amd64 swift package --disable-sandbox --allow-network-connections docker archive --disable-docker-image-update --products EventHandlerV2Lambda
+        run: DOCKER_DEFAULT_PLATFORM=linux/arm64 swift package --disable-sandbox --allow-network-connections docker archive --disable-docker-image-update --products EventHandlerV2Lambda
