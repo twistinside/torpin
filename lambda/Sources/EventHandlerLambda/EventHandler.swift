@@ -26,8 +26,6 @@ struct EventHandlerLambda: LambdaHandler {
     }
 
     func handle(_ event: In, context: LambdaContext) async throws -> Out {
-        LogManager.shared.info("Event triggered")
-
         let date = Date()
 
         async let torpin = steamClient.isBrianTorpin()

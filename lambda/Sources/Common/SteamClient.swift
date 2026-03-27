@@ -20,9 +20,6 @@ public class SteamClient {
             return false
         }
 
-        LogManager.shared.info("Steam ID from environment: \(steamID)")
-        LogManager.shared.info("Steam key from environment: \(steamKey)")
-
         var request = HTTPClientRequest(url: "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=\(steamKey)&steamids=\(steamID)")
         request.method = .GET
         request.headers.add(name: "Accept-Encoding", value: "identity")
@@ -39,8 +36,6 @@ public class SteamClient {
             return false
         }
 
-        LogManager.shared.info("Steam body: \(body)")
-
         let steamResponse: SteamResponse
         do {
             steamResponse = try decoder.decode(SteamResponse.self, from: Data(data))
@@ -49,11 +44,8 @@ public class SteamClient {
             return false
         }
 
-        LogManager.shared.info("Steam response: \(steamResponse)")
-
         // Access and use the decoded data
         guard let player = steamResponse.response.players.first, let gameId = player.gameid else {
-            LogManager.shared.info("No player found or no game ID present")
             return false
         } 
 

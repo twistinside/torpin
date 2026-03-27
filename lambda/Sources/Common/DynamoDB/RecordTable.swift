@@ -17,6 +17,5 @@ public class RecordTable {
             tableName: self.tableName
         )
         _ = try await client.putItem(input: input)
-        LogManager.shared.info("Put item: \(input)")
     }
 }
