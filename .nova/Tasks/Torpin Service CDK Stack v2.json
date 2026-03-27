@@ -1,0 +1,12 @@
+{
+  "actions" : {
+    "build" : {
+      "enabled" : true,
+      "script" : "cd cdk\nnpm install --no-audit --no-fund\nnpx tsc\nnpx cdk synth TorpinV2StageStack TorpinV2ProdStack"
+    },
+    "clean" : {
+      "enabled" : true,
+      "script" : "cd cdk\nnpm run clean"
+    }
+  }
+}
