@@ -3,9 +3,8 @@ import { Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Architecture, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { AccessLogFormat, CfnAccount, DomainName, EndpointType, LambdaIntegration, LogGroupLogDestination, MethodLoggingLevel, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { DomainName, EndpointType, LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
-import { ManagedPolicy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
@@ -70,45 +69,11 @@ export class TorpinStack extends Stack {
 
     table.grantReadWriteData(eventHandler);
 
-    const apiGatewayCloudWatchRole = new Role(this, 'ApiGatewayCloudWatchRole', {
-      assumedBy: new ServicePrincipal('apigateway.amazonaws.com'),  // API Gateway Service Principal
-    });
-
-    apiGatewayCloudWatchRole.addManagedPolicy(
-      ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonAPIGatewayPushToCloudWatchLogs')
-    );
-
-    new CfnAccount(this, 'ApiGatewayAccount', {
-      cloudWatchRoleArn: apiGatewayCloudWatchRole.roleArn,  // Use the created role's ARN
-    });
-
-
-    const logGroup = new LogGroup(this, 'ApiGatewayAccessLogs', {
-      retention: RetentionDays.ONE_WEEK,  // Set retention as needed
-    });
-
     const api = new RestApi(this, 'ToprinApiGateway', {
       restApiName: 'Is Brian Torpin Status Service',
       description: 'This service checks if Brian is playing World of Warships.',
       endpointConfiguration: {
         types: [EndpointType.REGIONAL] // Force Regional API
-      },
-      deployOptions: {
-        // Enable CloudWatch Logs and set access log destination to the log group
-        accessLogDestination: new LogGroupLogDestination(logGroup),
-        accessLogFormat: AccessLogFormat.jsonWithStandardFields({
-          caller: true,
-          httpMethod: true,
-          ip: true,
-          protocol: true,
-          requestTime: true,
-          resourcePath: true,
-          responseLength: true,
-          status: true,
-          user: true,
-        }),
-        loggingLevel: MethodLoggingLevel.INFO,  // Set logging level
-        dataTraceEnabled: false,
       },
     });
 

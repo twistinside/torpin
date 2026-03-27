@@ -26,7 +26,6 @@ struct TorpinServiceLambda: LambdaHandler {
     }
 
     func handle(_ event: In, context: LambdaContext) async throws -> Out {
-        LogManager.shared.info("Event received: \(event)")
         let isBrianTorpin = try await sessionManager.hasActiveSession()
         let result = TorpinResult(isBrianTorpin: isBrianTorpin)
         let bodyData = try JSONEncoder().encode(result)
@@ -39,7 +38,6 @@ struct TorpinServiceLambda: LambdaHandler {
             ],
             body: body
         )
-        LogManager.shared.info("Response: \(response)")
         return response;
     }
 }
