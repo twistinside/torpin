@@ -5,14 +5,44 @@ on:
   pull_request:
     branches: [ main ]
     paths:
+      - 'api/**'
       - 'lambda/**'
+      - 'lambda-v2/**'
 
 jobs:
   build-lambda:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Install API dependencies
+        working-directory: ./api
+        run: npm ci
+
+      - name: Test API Lambda
+        working-directory: ./api
+        run: npm test
+
+      - name: Package API Lambda
+        working-directory: ./api
+        run: npm run package
+
+      - name: Test Swift Lambda
+        working-directory: ./lambda
+        run: swift test
 
       - name: Package Swift Lambda
         working-directory: ./lambda
-        run: swift package archive --disable-sandbox plugin
+        run: swift package --disable-sandbox --allow-network-connections docker archive --disable-docker-image-update
+
+      - name: Test Swift Lambda v2
+        working-directory: ./lambda-v2
+        run: swift test
+
+      - name: Package Swift Lambda v2
+        working-directory: ./lambda-v2
+        run: swift package --disable-sandbox --allow-network-connections docker archive --disable-docker-image-update --products EventHandlerV2Lambda
