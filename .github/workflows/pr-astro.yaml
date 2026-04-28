@@ -15,11 +15,13 @@ jobs:
 
       - uses: actions/setup-node@v5
         with:
-          node-version: '22'
+          node-version: '22.12.0'
+          cache: 'npm'
+          cache-dependency-path: astro/package-lock.json
 
       - name: Install web dependencies
         working-directory: ./astro
-        run: npm install
+        run: npm ci
 
       - name: Build web site
         working-directory: ./astro
