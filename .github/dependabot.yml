@@ -21,9 +21,7 @@ updates:
         patterns:
           - "*"
   - package-ecosystem: "swift"
-    directories:
-      - "/lambda"
-      - "/lambda-v2"
+    directory: "/lambda"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -31,11 +29,28 @@ updates:
       timezone: "America/Los_Angeles"
     open-pull-requests-limit: 5
     groups:
-      swift-version-updates:
+      swift-v1-version-updates:
         applies-to: version-updates
         patterns:
           - "*"
-      swift-security-updates:
+      swift-v1-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+  - package-ecosystem: "swift"
+    directory: "/lambda-v2"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 5
+    groups:
+      swift-v2-version-updates:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      swift-v2-security-updates:
         applies-to: security-updates
         patterns:
           - "*"
