@@ -4,7 +4,10 @@ import { Construct } from 'constructs';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import {
   AllowedMethods,
+  CacheCookieBehavior,
+  CacheHeaderBehavior,
   CachePolicy,
+  CacheQueryStringBehavior,
   Distribution,
   Function as CloudFrontFunction,
   FunctionCode,
@@ -92,9 +95,19 @@ function handler(event) {
 }
       `),
     });
+    const statusCachePolicy = new CachePolicy(this, 'StatusCachePolicy', {
+      cookieBehavior: CacheCookieBehavior.none(),
+      defaultTtl: Duration.seconds(60),
+      enableAcceptEncodingBrotli: true,
+      enableAcceptEncodingGzip: true,
+      headerBehavior: CacheHeaderBehavior.none(),
+      maxTtl: Duration.seconds(60),
+      minTtl: Duration.seconds(0),
+      queryStringBehavior: CacheQueryStringBehavior.none(),
+    });
     const statusBehavior = {
       allowedMethods: AllowedMethods.ALLOW_GET_HEAD,
-      cachePolicy: CachePolicy.USE_ORIGIN_CACHE_CONTROL_HEADERS,
+      cachePolicy: statusCachePolicy,
       functionAssociations: [
         {
           eventType: FunctionEventType.VIEWER_REQUEST,
