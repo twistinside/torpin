@@ -37,9 +37,9 @@ jobs:
         uses: actions/cache@v6
         with:
           path: lambda-v2/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/
-          key: swift-lambda-v2-zip-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lambda-v2/Package.resolved', 'lambda-v2/Sources/**', 'lambda-v2/Package.swift') }}
+          key: swift-lambda-v2-zip-al2023-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lambda-v2/Package.resolved', 'lambda-v2/Sources/**', 'lambda-v2/Package.swift') }}
           restore-keys: |
-            swift-lambda-v2-zip-${{ runner.os }}-${{ runner.arch }}-
+            swift-lambda-v2-zip-al2023-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Test Swift Lambda v2
         working-directory: ./lambda-v2
@@ -48,7 +48,7 @@ jobs:
       - name: Package Swift Lambda v2
         if: steps.lambda-v2-cache.outputs.cache-hit != 'true'
         working-directory: ./lambda-v2
-        run: DOCKER_DEFAULT_PLATFORM=linux/arm64 swift package --disable-sandbox --allow-network-connections docker archive --disable-docker-image-update --products EventHandlerV2Lambda
+        run: DOCKER_DEFAULT_PLATFORM=linux/arm64 swift package --disable-sandbox --allow-network-connections docker archive --base-docker-image swift:amazonlinux2023 --disable-docker-image-update --products EventHandlerV2Lambda
 
       - name: Create placeholder legacy Lambda artifacts
         run: |
