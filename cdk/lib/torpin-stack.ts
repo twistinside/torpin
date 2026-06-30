@@ -9,6 +9,7 @@ import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 
 export class TorpinStack extends Stack {
+  public readonly api: RestApi;
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
@@ -68,7 +69,7 @@ export class TorpinStack extends Stack {
 
     table.grantReadWriteData(eventHandler);
 
-    const api = new RestApi(this, 'ToprinApiGateway', {
+    this.api = new RestApi(this, 'ToprinApiGateway', {
       restApiName: 'Is Brian Torpin Status Service',
       description: 'This service checks if Brian is playing World of Warships.',
       endpointConfiguration: {
@@ -76,7 +77,7 @@ export class TorpinStack extends Stack {
       },
     });
 
-    const apiResource = api.root.addResource('v1');
+    const apiResource = this.api.root.addResource('v1');
 
     const lambdaIntegration = new LambdaIntegration(apiLambda);
     apiResource.addMethod('GET', lambdaIntegration);
@@ -92,6 +93,6 @@ export class TorpinStack extends Stack {
       endpointType: EndpointType.REGIONAL,  // Ensure it's Regional
     });
 
-    customDomain.addBasePathMapping(api, { basePath: '' });
+    customDomain.addBasePathMapping(this.api, { basePath: '' });
   }
 }

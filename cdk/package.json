@@ -8,7 +8,7 @@
     "build": "npm run compile && npm run synth",
     "compile": "npm install && tsc",
     "clean": "rm -rf cdk.out dist node_modules",
-    "synth": "cdk synth"
+    "synth": "node node_modules/aws-cdk/bin/cdk synth"
   },
   "devDependencies": {
     "@types/node": "26.0.1",

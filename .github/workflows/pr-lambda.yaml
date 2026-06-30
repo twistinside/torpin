@@ -6,9 +6,11 @@ on:
     branches: [ main ]
     paths:
       - '.github/workflows/**'
-      - 'api/**'
       - 'lambda/**'
       - 'lambda-v2/**'
+
+env:
+  SWIFT_VERSION: '6.2.1'
 
 jobs:
   build-lambda:
@@ -16,21 +18,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v5
+      - name: Set up Swift
+        uses: swift-actions/setup-swift@v3
         with:
-          node-version: '22'
-
-      - name: Install API dependencies
-        working-directory: ./api
-        run: npm ci
-
-      - name: Test API Lambda
-        working-directory: ./api
-        run: npm test
-
-      - name: Package API Lambda
-        working-directory: ./api
-        run: npm run package
+          swift-version: ${{ env.SWIFT_VERSION }}
 
       - name: Test Swift Lambda
         working-directory: ./lambda
