@@ -28,6 +28,7 @@ jobs:
       - name: Set up Swift
         uses: swift-actions/setup-swift@v3
         with:
+          skip-verify-signature: true
           swift-version: ${{ env.SWIFT_VERSION }}
 
       - name: Cache Swift Lambda v2 archive
