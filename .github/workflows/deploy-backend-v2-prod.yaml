@@ -114,7 +114,7 @@ jobs:
       - name: Smoke test v2 prod API
         working-directory: ./cdk
         run: |
-          PROD_URL=$(node -e "const fs = require('fs'); const outputs = JSON.parse(fs.readFileSync('cdk-outputs.json', 'utf8')).TorpinV2ProdStack; process.stdout.write(outputs.ApiUrl);")
+          PROD_URL=$(node -e "const fs = require('fs'); const outputs = JSON.parse(fs.readFileSync('cdk-outputs.json', 'utf8')).TorpinV2ProdStack; process.stdout.write('https://' + outputs.DistributionDomainName + '/v2');")
           EVENT_HANDLER=$(node -e "const fs = require('fs'); const outputs = JSON.parse(fs.readFileSync('cdk-outputs.json', 'utf8')).TorpinV2ProdStack; process.stdout.write(outputs.EventHandlerFunctionName);")
           aws lambda invoke \
             --function-name "$EVENT_HANDLER" \
