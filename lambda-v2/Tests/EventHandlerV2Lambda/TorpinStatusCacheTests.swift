@@ -9,24 +9,25 @@ final class TorpinStatusCacheTests: XCTestCase {
 
         try await cache.putStatus(isBrianTorpin: true)
 
-        XCTAssertEqual(s3Client.inputs.map(\.bucket), ["status-bucket", "status-bucket"])
-        XCTAssertEqual(s3Client.inputs.map(\.cacheControl), [
-            S3TorpinStatusCache.cacheControl,
-            S3TorpinStatusCache.cacheControl,
-        ])
-        XCTAssertEqual(s3Client.inputs.map(\.contentType), [
-            S3TorpinStatusCache.contentType,
-            S3TorpinStatusCache.contentType,
-        ])
+        let expectedCount = S3TorpinStatusCache.keys.count
+        XCTAssertEqual(s3Client.inputs.map(\.bucket), Array(repeating: "status-bucket", count: expectedCount))
+        XCTAssertEqual(
+            s3Client.inputs.map(\.cacheControl),
+            Array(repeating: S3TorpinStatusCache.cacheControl, count: expectedCount)
+        )
+        XCTAssertEqual(
+            s3Client.inputs.map(\.contentType),
+            Array(repeating: S3TorpinStatusCache.contentType, count: expectedCount)
+        )
         XCTAssertEqual(s3Client.inputs.map(\.key), S3TorpinStatusCache.keys)
 
         let bodies = try await s3Client.inputs.asyncMap { input in
             try await input.body?.readData()
         }
-        XCTAssertEqual(bodies, [
-            #"{"isBrianTorpin":true}"#.data(using: .utf8),
-            #"{"isBrianTorpin":true}"#.data(using: .utf8),
-        ])
+        XCTAssertEqual(
+            bodies,
+            Array(repeating: #"{"isBrianTorpin":true}"#.data(using: .utf8), count: expectedCount)
+        )
     }
 }
 
