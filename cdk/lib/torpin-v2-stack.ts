@@ -48,7 +48,7 @@ export class TorpinV2Stack extends Stack {
     table.grantReadData(apiLambda);
 
     const eventHandler = new Function(this, 'EventHandlerLambda', {
-      runtime: Runtime.PROVIDED_AL2,
+      runtime: Runtime.PROVIDED_AL2023,
       architecture: Architecture.ARM_64,
       memorySize: 512,
       timeout: Duration.seconds(10),
