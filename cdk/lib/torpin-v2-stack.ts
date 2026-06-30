@@ -84,8 +84,8 @@ export class TorpinV2Stack extends Stack {
       code: FunctionCode.fromInline(`
 function handler(event) {
   var request = event.request;
-  if (request.uri === '/v2/') {
-    request.uri = '/v2';
+  if (request.uri === '/v2' || request.uri === '/v2/') {
+    request.uri = '/status.json';
   }
   return request;
 }
@@ -138,7 +138,7 @@ function handler(event) {
       distributionPaths: ['/v2', '/v2/'],
       prune: false,
       sources: [
-        Source.jsonData('v2', { isBrianTorpin: false }),
+        Source.jsonData('status.json', { isBrianTorpin: false }),
       ],
     });
 

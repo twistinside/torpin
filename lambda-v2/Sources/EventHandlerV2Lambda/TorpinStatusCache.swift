@@ -17,7 +17,7 @@ struct TorpinStatusDocument: Encodable, Equatable {
 struct S3TorpinStatusCache {
     static let cacheControl = "public, max-age=60, s-maxage=60"
     static let contentType = "application/json"
-    static let keys = ["v2", "v2/"]
+    static let keys = ["status.json", "v2", "v2/"]
 
     private let bucketName: String
     private let encoder: JSONEncoder
