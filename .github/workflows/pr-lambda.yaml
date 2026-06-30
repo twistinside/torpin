@@ -16,7 +16,7 @@ jobs:
   build-lambda:
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Set up Swift
         uses: swift-actions/setup-swift@v3

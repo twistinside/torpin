@@ -18,10 +18,10 @@ jobs:
     environment: staging
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
@@ -33,7 +33,7 @@ jobs:
 
       - name: Cache Swift Lambda v2 archive
         id: lambda-v2-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: lambda-v2/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/
           key: swift-lambda-v2-zip-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lambda-v2/Package.resolved', 'lambda-v2/Sources/**', 'lambda-v2/Package.swift') }}
@@ -59,7 +59,7 @@ jobs:
           rm lambda/placeholder.txt
 
       - name: Cache CDK node_modules
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: cdk/node_modules
           key: cdk-node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('cdk/package-lock.json') }}
@@ -74,7 +74,7 @@ jobs:
         run: npm install -g aws-cdk
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
