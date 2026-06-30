@@ -78,6 +78,7 @@ export class TorpinV2Stack extends Stack {
     rule.addTarget(new LambdaFunction(eventHandler));
 
     table.grantReadWriteData(eventHandler);
+    statusCacheBucket.grantPut(eventHandler, 'status.json');
     statusCacheBucket.grantPut(eventHandler, 'v2*');
 
     const normalizeStatusPath = new CloudFrontFunction(this, 'NormalizeStatusPathFunction', {
@@ -117,8 +118,7 @@ function handler(event) {
     const distribution = new Distribution(this, 'TorpinApiDistribution', {
       additionalBehaviors: {
         'v1/*': legacyBehavior,
-        'v2': statusBehavior,
-        'v2/': statusBehavior,
+        'v2*': statusBehavior,
       },
       certificate: cloudFrontCertificate,
       comment: `Low-latency Torpin API front door (${props.environmentName})`,
