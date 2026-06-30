@@ -28,9 +28,13 @@ jobs:
         working-directory: ./lambda
         run: swift test
 
-      - name: Package Swift Lambda
+      - name: Package Swift API Lambda
         working-directory: ./lambda
-        run: DOCKER_DEFAULT_PLATFORM=linux/arm64 swift package --disable-sandbox --allow-network-connections docker archive --disable-docker-image-update
+        run: DOCKER_DEFAULT_PLATFORM=linux/arm64 swift package --disable-sandbox --allow-network-connections docker archive --base-docker-image swift:amazonlinux2023 --disable-docker-image-update --products TorpinServiceLambda
+
+      - name: Package Swift Event Handler Lambda
+        working-directory: ./lambda
+        run: DOCKER_DEFAULT_PLATFORM=linux/arm64 swift package --disable-sandbox --allow-network-connections docker archive --base-docker-image swift:amazonlinux2023 --disable-docker-image-update --products EventHandlerLambda
 
       - name: Test Swift Lambda v2
         working-directory: ./lambda-v2
@@ -38,4 +42,4 @@ jobs:
 
       - name: Package Swift Lambda v2
         working-directory: ./lambda-v2
-        run: DOCKER_DEFAULT_PLATFORM=linux/arm64 swift package --disable-sandbox --allow-network-connections docker archive --disable-docker-image-update --products EventHandlerV2Lambda
+        run: DOCKER_DEFAULT_PLATFORM=linux/arm64 swift package --disable-sandbox --allow-network-connections docker archive --base-docker-image swift:amazonlinux2023 --disable-docker-image-update --products EventHandlerV2Lambda
