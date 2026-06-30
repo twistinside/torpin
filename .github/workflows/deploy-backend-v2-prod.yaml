@@ -8,6 +8,9 @@ on:
         required: true
         default: main
 
+env:
+  SWIFT_VERSION: '6.2.1'
+
 jobs:
   deploy:
     runs-on: ubuntu-24.04-arm
@@ -23,6 +26,11 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Set up Swift
+        uses: swift-actions/setup-swift@v3
+        with:
+          swift-version: ${{ env.SWIFT_VERSION }}
+
       - name: Cache Swift Lambda v2 archive
         id: lambda-v2-cache
         uses: actions/cache@v4
@@ -31,18 +39,6 @@ jobs:
           key: swift-lambda-v2-zip-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lambda-v2/Package.resolved', 'lambda-v2/Sources/**', 'lambda-v2/Package.swift') }}
           restore-keys: |
             swift-lambda-v2-zip-${{ runner.os }}-${{ runner.arch }}-
-
-      - name: Install API dependencies
-        working-directory: ./api
-        run: npm ci
-
-      - name: Test API Lambda
-        working-directory: ./api
-        run: npm test
-
-      - name: Package API Lambda
-        working-directory: ./api
-        run: npm run package
 
       - name: Test Swift Lambda v2
         working-directory: ./lambda-v2
@@ -86,14 +82,15 @@ jobs:
 
       - name: Bootstrap CDK
         working-directory: ./cdk
-        run: npx cdk bootstrap
+        run: node node_modules/aws-cdk/bin/cdk bootstrap
 
       - name: Deploy v2 prod stack
         env:
+          CLOUDFRONT_CERTIFICATE_ARN: ${{ secrets.CLOUDFRONT_CERTIFICATE_ARN }}
           STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
           STEAM_ID: ${{ secrets.STEAM_ID }}
         working-directory: ./cdk
-        run: npx cdk deploy TorpinV2ProdStack --require-approval never --outputs-file cdk-outputs.json
+        run: node node_modules/aws-cdk/bin/cdk deploy TorpinV2ProdStack --require-approval never --outputs-file cdk-outputs.json
 
       - name: Summarize v2 prod deployment
         working-directory: ./cdk
@@ -104,9 +101,10 @@ jobs:
           const summary = [
             '## v2 Prod',
             `- API URL: ${outputs.ApiUrl}`,
+            `- Distribution: ${outputs.DistributionDomainName}`,
             `- Table: ${outputs.TableName}`,
-            `- API Lambda: ${outputs.ApiFunctionName}`,
             `- Event Handler Lambda: ${outputs.EventHandlerFunctionName}`,
+            `- Status Cache Bucket: ${outputs.StatusCacheBucketName}`,
             '',
           ].join('\n');
           fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${summary}\n`);
@@ -116,8 +114,15 @@ jobs:
         working-directory: ./cdk
         run: |
           PROD_URL=$(node -e "const fs = require('fs'); const outputs = JSON.parse(fs.readFileSync('cdk-outputs.json', 'utf8')).TorpinV2ProdStack; process.stdout.write(outputs.ApiUrl);")
+          EVENT_HANDLER=$(node -e "const fs = require('fs'); const outputs = JSON.parse(fs.readFileSync('cdk-outputs.json', 'utf8')).TorpinV2ProdStack; process.stdout.write(outputs.EventHandlerFunctionName);")
+          aws lambda invoke \
+            --function-name "$EVENT_HANDLER" \
+            --cli-binary-format raw-in-base64-out \
+            --payload '{"version":"0","id":"smoke-test","detail-type":"Scheduled Event","source":"aws.events","account":"","time":"2026-01-01T00:00:00Z","region":"us-west-1","resources":[],"detail":{}}' \
+            /tmp/torpin-v2-prod-event-handler.json
+          sleep 10
           RESPONSE=$(curl --fail --silent --show-error "$PROD_URL")
-          RESPONSE="$RESPONSE" node -e "const body = JSON.parse(process.env.RESPONSE); if (typeof body.isBrianTorpin !== 'boolean') process.exit(1); if (!Object.prototype.hasOwnProperty.call(body, 'recentlyTorpedAt')) process.exit(1); if (!Object.prototype.hasOwnProperty.call(body, 'torpedForInSeconds')) process.exit(1);"
+          RESPONSE="$RESPONSE" node -e "const body = JSON.parse(process.env.RESPONSE); const keys = Object.keys(body).sort(); if (keys.length !== 1 || keys[0] !== 'isBrianTorpin') process.exit(1); if (typeof body.isBrianTorpin !== 'boolean') process.exit(1);"
 
       - name: Notify via Pushover
         if: ${{ always() }}

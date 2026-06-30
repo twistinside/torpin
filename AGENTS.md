@@ -4,19 +4,19 @@
 - `/v1` is the legacy live backend. Keep it running, but do not change it unless the task explicitly calls for legacy `/v1` work.
 - `/v2` is the active backend development target.
 - `GET /v1/` keeps the legacy response contract.
-- `GET /v2` returns `{"isBrianTorpin": boolean, "recentlyTorpedAt": string | null, "torpedForInSeconds": number | null}`.
+- `GET /v2` returns `{"isBrianTorpin": boolean}` from the static status cache.
 
 ## Backend Ownership
 - `lambda/` is the legacy Swift package for `/v1`.
 - `lambda-v2/` is the separate Swift package for the `/v2` EventBridge handler and uses the newer Swift Lambda runtime API.
-- `api/` is the JavaScript Lambda for the `/v2` API.
+- `api/` is the retired JavaScript Lambda package that previously served `/v2`; do not route new `/v2` traffic through it.
 - Do not overlap new `/v2` backend work into existing `/v1` Swift files unless explicitly requested.
 
 ## Infrastructure Ownership
 - `cdk/lib/torpin-stack.ts` owns the legacy `/v1` infrastructure.
 - `cdk/lib/torpin-v2-stack.ts` owns the `/v2` infrastructure.
 - `/v2` has separate `stage` and `prod` environments.
-- `stage` uses the API Gateway execute-api URL only.
+- `stage` uses the CloudFront distribution URL only.
 - `prod` is exposed at `https://api.isbriantorp.in/v2`.
 
 ## Deployment Rules

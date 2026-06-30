@@ -6,22 +6,23 @@ import { TorpinV2Stack } from '../lib/torpin-v2-stack';
 
 const app = new cdk.App();
 
-new TorpinStack(app, 'TorpinStack', {
+const torpinStack = new TorpinStack(app, 'TorpinStack', {
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
 });
 
 new TorpinV2Stack(app, 'TorpinV2StageStack', {
-  apiStageName: 'stage',
   environmentName: 'stage',
+  legacyApi: torpinStack.api,
   scheduleEnabled: true,
   tableName: 'TorpinV2Stage',
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
 });
 
 new TorpinV2Stack(app, 'TorpinV2ProdStack', {
-  apiStageName: 'prod',
-  customDomainBasePath: 'v2',
+  cloudFrontCertificateArn: process.env.CLOUDFRONT_CERTIFICATE_ARN,
+  customDomainName: 'api.isbriantorp.in',
   environmentName: 'prod',
+  legacyApi: torpinStack.api,
   scheduleEnabled: true,
   tableName: 'TorpinV2Prod',
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },

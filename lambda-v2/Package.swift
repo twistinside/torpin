@@ -23,6 +23,7 @@ let package = Package(
             dependencies: [
                 "Common",
                 .product(name: "AWSLambdaEvents", package: "swift-aws-lambda-events"),
+                .product(name: "AWSS3", package: "aws-sdk-swift"),
             ],
             path: "Sources/EventHandlerV2Lambda"
         ),

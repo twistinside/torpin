@@ -1,16 +1,32 @@
 import { join } from 'path';
 import { CfnOutput, Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import {
+  AllowedMethods,
+  CachePolicy,
+  Distribution,
+  Function as CloudFrontFunction,
+  FunctionCode,
+  FunctionEventType,
+  OriginRequestPolicy,
+  ResponseHeadersPolicy,
+  ViewerProtocolPolicy,
+} from 'aws-cdk-lib/aws-cloudfront';
+import { RestApiOrigin, S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { Architecture, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { CfnBasePathMapping, EndpointType, LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
+import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
+import { BucketDeployment, CacheControl, Source } from 'aws-cdk-lib/aws-s3-deployment';
 
 export interface TorpinV2StackProps extends StackProps {
-  apiStageName: string;
-  customDomainBasePath?: string;
+  cloudFrontCertificateArn?: string;
+  customDomainName?: string;
   environmentName: 'prod' | 'stage';
+  legacyApi: RestApi;
   scheduleEnabled: boolean;
   tableName: string;
 }
@@ -27,25 +43,12 @@ export class TorpinV2Stack extends Stack {
       removalPolicy: RemovalPolicy.RETAIN,
     });
 
-    const apiLambda = new Function(this, 'TorpinApi', {
-      runtime: Runtime.NODEJS_22_X,
-      architecture: Architecture.ARM_64,
-      memorySize: 512,
-      timeout: Duration.seconds(10),
-      description: `API lambda for Torpin v2 (${props.environmentName})`,
-      code: Code.fromAsset(
-        join(
-          __dirname,
-          '../../api/.dist'
-        )
-      ),
-      handler: 'index.handler',
-      environment: {
-        TABLE_NAME: table.tableName,
-      },
+    const statusCacheBucket = new Bucket(this, 'StatusCacheBucket', {
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      encryption: BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      removalPolicy: RemovalPolicy.RETAIN,
     });
-
-    table.grantReadData(apiLambda);
 
     const eventHandler = new Function(this, 'EventHandlerLambda', {
       runtime: Runtime.PROVIDED_AL2023,
@@ -63,6 +66,7 @@ export class TorpinV2Stack extends Stack {
       environment: {
         STEAM_API_KEY: process.env.STEAM_API_KEY || '',
         STEAM_ID: process.env.STEAM_ID || '',
+        STATUS_CACHE_BUCKET: statusCacheBucket.bucketName,
         TABLE_NAME: table.tableName,
       },
     });
@@ -74,37 +78,78 @@ export class TorpinV2Stack extends Stack {
     rule.addTarget(new LambdaFunction(eventHandler));
 
     table.grantReadWriteData(eventHandler);
+    statusCacheBucket.grantPut(eventHandler, 'v2*');
 
-    const api = new RestApi(this, 'TorpinApiGateway', {
-      restApiName: `Is Brian Torpin Status Service v2 (${props.environmentName})`,
-      description: 'This service checks if Brian is playing World of Warships.',
-      endpointConfiguration: {
-        types: [EndpointType.REGIONAL],
+    const normalizeStatusPath = new CloudFrontFunction(this, 'NormalizeStatusPathFunction', {
+      code: FunctionCode.fromInline(`
+function handler(event) {
+  var request = event.request;
+  if (request.uri === '/v2/') {
+    request.uri = '/v2';
+  }
+  return request;
+}
+      `),
+    });
+    const statusBehavior = {
+      allowedMethods: AllowedMethods.ALLOW_GET_HEAD,
+      cachePolicy: CachePolicy.USE_ORIGIN_CACHE_CONTROL_HEADERS,
+      functionAssociations: [
+        {
+          eventType: FunctionEventType.VIEWER_REQUEST,
+          function: normalizeStatusPath,
+        },
+      ],
+      origin: S3BucketOrigin.withOriginAccessControl(statusCacheBucket),
+      responseHeadersPolicy: ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS,
+      viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    };
+    const legacyBehavior = {
+      allowedMethods: AllowedMethods.ALLOW_ALL,
+      cachePolicy: CachePolicy.CACHING_DISABLED,
+      origin: new RestApiOrigin(props.legacyApi),
+      originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+      viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    };
+    const cloudFrontCertificate = props.cloudFrontCertificateArn
+      ? Certificate.fromCertificateArn(this, 'CloudFrontCertificate', props.cloudFrontCertificateArn)
+      : undefined;
+    const distribution = new Distribution(this, 'TorpinApiDistribution', {
+      additionalBehaviors: {
+        'v1/*': legacyBehavior,
+        'v2': statusBehavior,
+        'v2/': statusBehavior,
       },
-      deployOptions: {
-        stageName: props.apiStageName,
-      },
+      certificate: cloudFrontCertificate,
+      comment: `Low-latency Torpin API front door (${props.environmentName})`,
+      defaultBehavior: legacyBehavior,
+      domainNames: cloudFrontCertificate && props.customDomainName ? [props.customDomainName] : undefined,
     });
 
-    api.root.addMethod('GET', new LambdaIntegration(apiLambda));
-
-    if (props.customDomainBasePath) {
-      new CfnBasePathMapping(this, 'CustomDomainMapping', {
-        basePath: props.customDomainBasePath,
-        domainName: 'api.isbriantorp.in',
-        restApiId: api.restApiId,
-        stage: api.deploymentStage.stageName,
-      });
-    }
-
-    new CfnOutput(this, 'ApiFunctionName', {
-      value: apiLambda.functionName,
+    new BucketDeployment(this, 'InitialStatusCacheDeployment', {
+      cacheControl: [
+        CacheControl.setPublic(),
+        CacheControl.maxAge(Duration.seconds(60)),
+        CacheControl.sMaxAge(Duration.seconds(60)),
+      ],
+      contentType: 'application/json',
+      destinationBucket: statusCacheBucket,
+      distribution,
+      distributionPaths: ['/v2', '/v2/'],
+      prune: false,
+      sources: [
+        Source.jsonData('v2', { isBrianTorpin: false }),
+      ],
     });
 
     new CfnOutput(this, 'ApiUrl', {
-      value: props.customDomainBasePath
-        ? `https://api.isbriantorp.in/${props.customDomainBasePath}`
-        : api.url,
+      value: cloudFrontCertificate && props.customDomainName
+        ? `https://${props.customDomainName}/v2`
+        : `https://${distribution.distributionDomainName}/v2`,
+    });
+
+    new CfnOutput(this, 'DistributionDomainName', {
+      value: distribution.distributionDomainName,
     });
 
     new CfnOutput(this, 'EventHandlerFunctionName', {
@@ -113,6 +158,10 @@ export class TorpinV2Stack extends Stack {
 
     new CfnOutput(this, 'TableName', {
       value: table.tableName,
+    });
+
+    new CfnOutput(this, 'StatusCacheBucketName', {
+      value: statusCacheBucket.bucketName,
     });
   }
 }
