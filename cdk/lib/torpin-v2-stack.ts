@@ -16,9 +16,8 @@ import {
   ResponseHeadersPolicy,
   ViewerProtocolPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
-import { RestApiOrigin, S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { HttpOrigin, S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { Architecture, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
@@ -29,7 +28,8 @@ export interface TorpinV2StackProps extends StackProps {
   cloudFrontCertificateArn?: string;
   customDomainName?: string;
   environmentName: 'prod' | 'stage';
-  legacyApi: RestApi;
+  legacyApiDomainName: string;
+  legacyApiOriginPath: string;
   scheduleEnabled: boolean;
   tableName: string;
 }
@@ -121,7 +121,9 @@ function handler(event) {
     const legacyBehavior = {
       allowedMethods: AllowedMethods.ALLOW_ALL,
       cachePolicy: CachePolicy.CACHING_DISABLED,
-      origin: new RestApiOrigin(props.legacyApi),
+      origin: new HttpOrigin(props.legacyApiDomainName, {
+        originPath: props.legacyApiOriginPath,
+      }),
       originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
       viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
     };

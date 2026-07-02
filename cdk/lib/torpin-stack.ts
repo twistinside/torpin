@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnOutput, Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Architecture, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { DomainName, EndpointType, LambdaIntegration, RestApi } from 'aws-cdk-lib/aws-apigateway';
@@ -81,6 +81,16 @@ export class TorpinStack extends Stack {
 
     const lambdaIntegration = new LambdaIntegration(apiLambda);
     apiResource.addMethod('GET', lambdaIntegration);
+
+    new CfnOutput(this, 'ExportsOutputRefToprinApiGatewayCAC85CDFD3277779', {
+      exportName: 'TorpinStack:ExportsOutputRefToprinApiGatewayCAC85CDFD3277779',
+      value: this.api.restApiId,
+    });
+
+    new CfnOutput(this, 'ExportsOutputRefToprinApiGatewayDeploymentStageprod8AAE6324E7284805', {
+      exportName: 'TorpinStack:ExportsOutputRefToprinApiGatewayDeploymentStageprod8AAE6324E7284805',
+      value: this.api.deploymentStage.stageName,
+    });
 
     const certificate = new Certificate(this, 'Certificate', {
       domainName: 'api.isbriantorp.in',
