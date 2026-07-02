@@ -14,7 +14,7 @@ This project consists of five submodules:
 1. a legacy Swift backend package in `lambda/` that still serves `/v1`
 2. a retired Node.js API package in `api/` that previously served `/v2`
 3. a separate Swift EventBridge Lambda package in `lambda-v2/` that records state for `/v2` and writes the static status cache
-4. a CDK package in `cdk/` that deploys both backend generations
+4. a CDK package in `cdk/` that deploys the legacy stack and the separate v2 stacks
 5. the Astro website in `astro/` that consumes the backend
 
 <p align="center">
@@ -48,6 +48,8 @@ The API surface is versioned:
 
    `{"isBrianTorpin": boolean}`
 
+The `v2` CloudFront distribution also keeps legacy compatibility by routing `/v1/*` to the existing API Gateway execute-api origin. That origin is configured as a literal HTTP origin, not as a CDK reference to the legacy `TorpinStack`, so v2 deployments do not update or package the legacy Lambda functions.
+
 ### Architecture considerations
 
 The database is called from two lambdas, but is only written to by one. The lambda triggered by API Gateway is read only, so there is no opportunity for a race condition.
@@ -56,7 +58,11 @@ Calls to the Steam API are only done by the Swift lambda triggered by EventBridg
 
 ## CDK
 
-The project's resources are all deployable as infrastructure-as-code. This enables me to automate deployments and rebuild the entire system trivially if needed. The only challenge with fully deploying a clean website is ensuring that I can set record for my website. That is a manual step that has to happen once on a full redeploy.
+The project's resources are all deployable as infrastructure-as-code. This enables me to automate deployments and rebuild the entire system trivially if needed. The legacy `/v1` infrastructure lives in `cdk/lib/torpin-stack.ts`; the active `/v2` infrastructure lives in `cdk/lib/torpin-v2-stack.ts`.
+
+By default, the CDK app synthesizes only the v2 stage and prod stacks. Set `INCLUDE_LEGACY_STACK=true` when intentionally synthesizing or deploying the legacy stack. The v2 stacks route `/v1/*` through CloudFront to the existing legacy API Gateway by domain name and origin path, which keeps the v2 deployment graph decoupled from `TorpinStack`.
+
+Production CloudFront uses `api.isbriantorp.in` and requires a us-east-1 ACM certificate passed through `CLOUDFRONT_CERTIFICATE_ARN`. DNS is managed manually outside CDK; after a prod CloudFront deployment, `api.isbriantorp.in` must point at the prod CloudFront distribution domain.
 
 ## Astro Website
 
@@ -71,7 +77,9 @@ The site's code is hosted in Github and deployed using GitHub Actions.
 `v2` backend deployments are intentionally split:
 1. pushes to `main` deploy `v2` stage
 2. `v2` prod is deployed manually through an approved workflow
-3. legacy `v1` stays live until the newer backend is proven out
+3. legacy `v1` stays live, but is not deployed by the v2 workflows
+
+The v2 deploy workflows build and deploy only `lambda-v2/` and `TorpinV2StageStack` or `TorpinV2ProdStack`. They must not create placeholder artifacts for `lambda/`, because that can overwrite the legacy Lambda code if the legacy stack enters the v2 deployment graph. PR checks still cover legacy-relevant paths so changes to `lambda/**` or legacy CDK files are visible before merge.
 
 # Lessons Learned
 

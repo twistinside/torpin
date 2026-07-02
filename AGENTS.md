@@ -5,6 +5,8 @@
 - `/v2` is the active backend development target.
 - `GET /v1/` keeps the legacy response contract.
 - `GET /v2` returns `{"isBrianTorpin": boolean}` from the static status cache.
+- CloudFront must serve both `/v2` and `/v2/` from the static status cache.
+- CloudFront must keep `/v1/*` routed to the legacy API Gateway origin for compatibility.
 
 ## Backend Ownership
 - `lambda/` is the legacy Swift package for `/v1`.
@@ -18,12 +20,19 @@
 - `/v2` has separate `stage` and `prod` environments.
 - `stage` uses the CloudFront distribution URL only.
 - `prod` is exposed at `https://api.isbriantorp.in/v2`.
+- The v2 CloudFront legacy origin must be configured from `legacyApiDomainName` and `legacyApiOriginPath` strings, not from a CDK reference to `TorpinStack`.
+- Do not make `TorpinV2StageStack` or `TorpinV2ProdStack` depend on `TorpinStack`; v2 deploys must not update legacy Lambda resources.
+- The default CDK app synth/deploy path includes only v2 stacks. Use `INCLUDE_LEGACY_STACK=true` only when intentionally working on legacy `/v1` infrastructure.
 
 ## Deployment Rules
 - Legacy `/v1` remains live but is not deployed through GitHub Actions anymore.
 - `v2` stage deploys through `.github/workflows/deploy-backend-v2-stage.yaml`.
 - `v2` prod deploys through `.github/workflows/deploy-backend-v2-prod.yaml`.
 - Keep `/v1` stable while iterating on `/v2`.
+- v2 deploy workflows must package and deploy only `lambda-v2/`; do not add placeholder or real `lambda/` packaging steps to v2 deploy workflows.
+- Keep v1-related PR workflow triggers active for `lambda/**` and legacy CDK-relevant changes even though v1 is not deployed by GitHub Actions.
+- Production CloudFront needs `CLOUDFRONT_CERTIFICATE_ARN` for a us-east-1 ACM certificate covering `api.isbriantorp.in`.
+- DNS for `api.isbriantorp.in` is manual and should point to the prod CloudFront distribution after cutover.
 
 ## Nova Tasks
 - Use `.nova/Tasks/Torpin Service Lambda v2.json` for the `lambda-v2/` package.
