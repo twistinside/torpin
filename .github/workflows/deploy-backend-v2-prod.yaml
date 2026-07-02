@@ -50,15 +50,6 @@ jobs:
         working-directory: ./lambda-v2
         run: DOCKER_DEFAULT_PLATFORM=linux/arm64 swift package --disable-sandbox --allow-network-connections docker archive --base-docker-image swift:amazonlinux2023 --disable-docker-image-update --products EventHandlerV2Lambda
 
-      - name: Create placeholder legacy Lambda artifacts
-        run: |
-          mkdir -p lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/TorpinServiceLambda
-          mkdir -p lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/EventHandlerLambda
-          echo 'placeholder' > lambda/placeholder.txt
-          zip -qj lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/TorpinServiceLambda/TorpinServiceLambda.zip lambda/placeholder.txt
-          zip -qj lambda/.build/plugins/AWSLambdaPackager/outputs/AWSLambdaPackager/EventHandlerLambda/EventHandlerLambda.zip lambda/placeholder.txt
-          rm lambda/placeholder.txt
-
       - name: Cache CDK node_modules
         uses: actions/cache@v6
         with:

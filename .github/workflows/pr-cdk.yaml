@@ -41,5 +41,7 @@ jobs:
           rm lambda-v2/placeholder.txt
 
       - name: Synthesize CDK
+        env:
+          INCLUDE_LEGACY_STACK: 'true'
         working-directory: ./cdk
         run: node node_modules/aws-cdk/bin/cdk synth
