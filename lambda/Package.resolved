@@ -1,5 +1,5 @@
 {
-  "originHash" : "349ab720ed2ee5bc2710c69694469f83a62f6d9a5a41c30f0eb6018351054570",
+  "originHash" : "99edec70c16d39fb806e6e46a328807c0d6783f802e03d26cc6c4783c4ac3cd6",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/awslabs/aws-sdk-swift",
       "state" : {
-        "revision" : "9de629259148d896147347321c212816e0dedc55",
-        "version" : "1.7.36"
+        "revision" : "28b615d0bec199a67376679173edd3aa0ceff032",
+        "version" : "1.7.41"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/smithy-lang/smithy-swift",
       "state" : {
-        "revision" : "c93e682c61af9e97bf5fed5ff21a6b206dec28f2",
-        "version" : "0.232.0"
+        "revision" : "70b806aa706a6fc5a4f0025964d2c3ef83fec4ac",
+        "version" : "0.233.0"
       }
     },
     {
@@ -96,8 +96,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swift-server/swift-aws-lambda-runtime.git",
       "state" : {
-        "revision" : "5ecc24fa54e61756fe7a7a01f2451da1cffa916e",
-        "version" : "1.0.0-alpha.3"
+        "revision" : "4815273dc3f45bb199d4c2003032bcf4840caa3f",
+        "version" : "2.5.3"
       }
     },
     {
