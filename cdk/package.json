@@ -11,14 +11,14 @@
     "synth": "node node_modules/aws-cdk/bin/cdk synth"
   },
   "devDependencies": {
-    "@types/node": "26.0.1",
-    "aws-cdk": "2.1128.1",
+    "@types/node": "26.1.2",
+    "aws-cdk": "2.1134.0",
     "ts-node": "^10.9.2",
-    "typescript": "~6.0.3"
+    "typescript": "~7.0.2"
   },
   "dependencies": {
-    "aws-cdk-lib": "2.260.0",
-    "constructs": "^10.6.0",
+    "aws-cdk-lib": "2.262.2",
+    "constructs": "^10.7.2",
     "source-map-support": "^0.5.21"
   },
   "overrides": {
